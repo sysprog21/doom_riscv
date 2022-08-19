@@ -596,7 +596,7 @@ void IdentifyVersion (void)
         sprintf(doom2wad, "%s/doom2.wad", doomwaddir);
 
         // Retail.
-        doomuwad = malloc(strlen(doomwaddir)+1+8+1);
+        doomuwad = malloc(strlen(doomwaddir)+1+9+1);
         sprintf(doomuwad, "%s/doomu.wad", doomwaddir);
 
         // Registered.
@@ -612,7 +612,7 @@ void IdentifyVersion (void)
         plutoniawad = malloc(strlen(doomwaddir)+1+/*9*/12+1);
         sprintf(plutoniawad, "%s/plutonia.wad", doomwaddir);
 
-        tntwad = malloc(strlen(doomwaddir)+1+9+1);
+        tntwad = malloc(strlen(doomwaddir)+1+7+1);
         sprintf(tntwad, "%s/tnt.wad", doomwaddir);
 
         // French stuff.
