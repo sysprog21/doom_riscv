@@ -15,11 +15,11 @@ SOURCES_doom := \
 	m_argv.c \
 	m_bbox.c \
 	m_cheat.c \
-	m_fixed.c \
 	m_menu.c \
 	m_misc.c \
 	m_random.c \
 	m_swap.c \
+	m_recip.c \
 	p_ceilng.c \
 	p_doors.c \
 	p_enemy.c \

@@ -54,6 +54,12 @@ typedef unsigned char byte;
 #define MINLONG         ((long)LONG_MIN)
 
 
+#if defined(__GNUC__) || defined(__clang__)
+#define CONSTFUNC __attribute__((const))
+#else
+#define CONSTFUNC
+#endif
+
 #endif
 //-----------------------------------------------------------------------------
 //
