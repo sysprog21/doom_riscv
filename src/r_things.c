@@ -157,7 +157,14 @@ R_InstallSpriteLump
 }
 
 
-
+static int
+R_GetIntName(const char* name)
+{
+    return (int)((((unsigned)name[0]) << 0) |
+                 (((unsigned)name[1]) << 8) |
+                 (((unsigned)name[2]) << 16) |
+                 (((unsigned)name[3]) << 24));
+}
 
 //
 // R_InitSpriteDefs
@@ -176,7 +183,6 @@ R_InstallSpriteLump
 //
 void R_InitSpriteDefs (char** namelist)
 {
-    char**      check;
     int         i;
     int         l;
     int         intname;
@@ -187,14 +193,7 @@ void R_InitSpriteDefs (char** namelist)
     int         patched;
 
     // count the number of sprite names
-    check = namelist;
-    while (*check != NULL)
-        check++;
-
-    numsprites = check-namelist;
-
-    if (!numsprites)
-        return;
+    numsprites = (int)NUMSPRITES;
 
     sprites = Z_Malloc(numsprites *sizeof(*sprites), PU_STATIC, NULL);
 
@@ -210,13 +209,13 @@ void R_InitSpriteDefs (char** namelist)
         memset (sprtemp,-1, sizeof(sprtemp));
 
         maxframe = -1;
-        intname = *(int *)namelist[i];
+        intname = R_GetIntName(namelist[i]);
 
         // scan the lumps,
         //  filling in the frames for whatever is found
         for (l=start+1 ; l<end ; l++)
         {
-            if (*(int *)lumpinfo[l].name == intname)
+            if (R_GetIntName(lumpinfo[l].name) == intname)
             {
                 frame = lumpinfo[l].name[4] - 'A';
                 rotation = lumpinfo[l].name[5] - '0';
