@@ -542,15 +542,15 @@ void IdentifyVersion (void)
 #elif 0
     gamemode = commercial;
     D_AddFile ("tnt.wad");
-#elif 1
+#elif 0
     gamemode = retail;
     D_AddFile ("doomu.wad");
 #elif 0
     gamemode = registered;
     D_AddFile ("doom.wad");
-#elif 0
+#elif 1
     gamemode = shareware;
-    D_AddFile ("doom1.wad");
+    D_AddFile ("DOOM1.WAD");
 #else
     printf("Game mode indeterminate.\n");
     gamemode = indetermined;

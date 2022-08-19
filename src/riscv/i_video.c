@@ -26,16 +26,21 @@
 #include "v_video.h"
 #include "i_video.h"
 
-#include "config.h"
-
+static uint32_t buffer[SCREENWIDTH * SCREENHEIGHT];
+static uint32_t video_pal[256];
 
 void
 I_InitGraphics(void)
 {
-	/* Don't need to do anything really ... */
-
-	/* Ok, maybe just set gamma default */
 	usegamma = 1;
+
+	register int a0 asm("a0") = (uintptr_t) buffer;
+	register int a1 asm("a1") = SCREENWIDTH;
+	register int a2 asm("a2") = SCREENHEIGHT;
+	register int a7 asm("a7") = 0xbeef;
+
+	asm volatile("scall"
+	             : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
 }
 
 void
@@ -48,7 +53,6 @@ I_ShutdownGraphics(void)
 void
 I_SetPalette(byte* palette)
 {
-	static volatile uint32_t * const video_pal = (void*)(VID_PAL_BASE);
 	byte r, g, b;
 
 	for (int i=0 ; i<256 ; i++) {
@@ -69,11 +73,17 @@ void
 I_FinishUpdate (void)
 {
 	/* Copy from RAM buffer to frame buffer */
-	memcpy(
-		(void*)VID_FB_BASE,
-		screens[0],
-		SCREENHEIGHT * SCREENWIDTH
-	);
+	for (int i = 0; i < SCREENWIDTH * SCREENHEIGHT; ++i) {
+		buffer[i] = video_pal[screens[0][i]];
+	}
+
+	register int a0 asm("a0") = (uintptr_t) buffer;
+	register int a1 asm("a1") = SCREENWIDTH;
+	register int a2 asm("a2") = SCREENHEIGHT;
+	register int a7 asm("a7") = 0xbeef;
+
+	asm volatile("scall"
+	             : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
 
 	/* Very crude FPS measure (time to render 100 frames */
 #if 1
@@ -94,9 +104,6 @@ I_FinishUpdate (void)
 void
 I_WaitVBL(int count)
 {
-	/* Buys-Wait for VBL status bit */
-	static volatile uint32_t * const video_state = (void*)(VID_CTRL_BASE);
-	while (!(video_state[0] & (1<<16)));
 }
 
 

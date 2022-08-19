@@ -23,6 +23,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+#include <time.h>
 
 #include "doomdef.h"
 #include "doomstat.h"
@@ -36,13 +38,38 @@
 #include "i_system.h"
 
 #include "console.h"
-#include "config.h"
 
+enum {
+	KEY_EVENT = 0,
+	MOUSE_MOTION_EVENT = 1,
+	MOUSE_BUTTON_EVENT = 2,
+};
 
-/* Video controller, used as a time base */
-	/* Normally running at 70 Hz, although in 640x480 compat
-	 * mode, it's 60 Hz so our tick is 15% too slow ... */
-static volatile uint32_t * const video_state = (void*)(VID_CTRL_BASE);
+typedef struct {
+	uint32_t keycode;
+	uint8_t state;
+} key_event_t;
+
+typedef struct {
+	int32_t xrel;
+	int32_t yrel;
+} mouse_motion_t;
+
+typedef struct {
+	uint8_t button;
+	uint8_t state;
+} mouse_button_t;
+
+typedef struct {
+	uint32_t type;
+	union {
+		key_event_t key_event;
+		union {
+			mouse_motion_t motion;
+			mouse_button_t button;
+		} mouse;
+	};
+} rv32emu_event_t;
 
 /* Video Ticks tracking */
 static uint16_t vt_last = 0;
@@ -52,7 +79,6 @@ static uint32_t vt_base = 0;
 void
 I_Init(void)
 {
-	vt_last = video_state[0] & 0xffff;
 }
 
 
@@ -68,50 +94,28 @@ I_ZoneBase(int *size)
 int
 I_GetTime(void)
 {
-	uint16_t vt_now = video_state[0] & 0xffff;
+	uint16_t vt_now = (uint64_t) clock() / (CLOCKS_PER_SEC / 35.0f);
 
 	if (vt_now < vt_last)
 		vt_base += 65536;
 	vt_last = vt_now;
 
 	/* TIC_RATE is 35 in theory */
-	return (vt_base + vt_now) >> 1;
+	return vt_base + vt_now;
 }
 
+static int PollEvent(rv32emu_event_t* event)
+{
+	register int a0 asm("a0") = (uintptr_t) event;
+	register int a7 asm("a7") = 0xc0de;
+	asm volatile("scall" : "+r"(a0) : "r"(a7));
+	return a0;
+}
 
 static void
 I_GetRemoteEvent(void)
 {
 	event_t event;
-
-	const char map[] = {
-		KEY_LEFTARROW,  // 0
-		KEY_RIGHTARROW, // 1
-		KEY_DOWNARROW,  // 2
-		KEY_UPARROW,    // 3
-		KEY_RSHIFT,     // 4
-		KEY_RCTRL,      // 5
-		KEY_RALT,       // 6
-		KEY_ESCAPE,     // 7
-		KEY_ENTER,      // 8
-		KEY_TAB,        // 9
-		KEY_BACKSPACE,  // 10
-		KEY_PAUSE,      // 11
-		KEY_EQUALS,     // 12
-		KEY_MINUS,      // 13
-		KEY_F1,         // 14
-		KEY_F2,         // 15
-		KEY_F3,         // 16
-		KEY_F4,         // 17
-		KEY_F5,         // 18
-		KEY_F6,         // 19
-		KEY_F7,         // 20
-		KEY_F8,         // 21
-		KEY_F9,         // 22
-		KEY_F10,        // 23
-		KEY_F11,        // 24
-		KEY_F12,        // 25
-	};
 
 	static byte s_btn = 0;
 
@@ -119,38 +123,93 @@ I_GetRemoteEvent(void)
 	int mdx = 0;
 	int mdy = 0;
 
-	while (1) {
-		int ch = console_getchar_nowait();
-		if (ch == -1)
-			break;
+	rv32emu_event_t rv32emu_event;
+	while (PollEvent(&rv32emu_event)) {
+		if (rv32emu_event.type == KEY_EVENT && rv32emu_event.key_event.keycode & 0x40000000) {
+			uint32_t keycode = rv32emu_event.key_event.keycode;
+			switch (keycode) {
+				case 0x40000050:
+					keycode = KEY_LEFTARROW;
+					break;
+				case 0x4000004F:
+					keycode = KEY_RIGHTARROW;
+					break;
+				case 0x40000051:
+					keycode = KEY_DOWNARROW;
+					break;
+				case 0x40000052:
+					keycode = KEY_UPARROW;
+					break;
+				case 0x400000E5:
+					keycode = KEY_RSHIFT;
+					break;
+				case 0x400000E4:
+					keycode = KEY_RCTRL;
+					break;
+				case 0x400000E6:
+					keycode = KEY_RALT;
+					break;
+				case 0x40000048:
+					keycode = KEY_PAUSE;
+					break;
+				case 0x4000003A:
+					keycode = KEY_F1;
+					break;
+				case 0x4000003B:
+					keycode = KEY_F2;
+					break;
+				case 0x4000003C:
+					keycode = KEY_F3;
+					break;
+				case 0x4000003D:
+					keycode = KEY_F4;
+					break;
+				case 0x4000003E:
+					keycode = KEY_F5;
+					break;
+				case 0x4000003F:
+					keycode = KEY_F6;
+					break;
+				case 0x40000040:
+					keycode = KEY_F7;
+					break;
+				case 0x40000041:
+					keycode = KEY_F8;
+					break;
+				case 0x40000042:
+					keycode = KEY_F9;
+					break;
+				case 0x40000043:
+					keycode = KEY_F10;
+					break;
+				case 0x40000044:
+					keycode = KEY_F11;
+					break;
+				case 0x40000045:
+					keycode = KEY_F12;
+					break;
+			}
+			rv32emu_event.key_event.keycode = keycode;
+		}
 
-		boolean msb = ch & 0x80;
-		ch &= 0x7f;
-
-		if (ch < 28) {
-			/* Keyboard special */
-			event.type = msb ? ev_keydown : ev_keyup;
-			event.data1 = map[ch];
-			D_PostEvent(&event);
-		} else if (ch < 31) {
-			/* Mouse buttons */
-			if (msb)
-				s_btn |= (1 << ((ch & 0x7f) - 28));
-			else
-				s_btn &= ~(1 << ((ch & 0x7f) - 28));
-			mupd = true;
-		} else if (ch == 0x1f) {
-			/* Mouse movement */
-			signed char x = console_getchar();
-			signed char y = console_getchar();
-			mdx += x;
-			mdy += y;
-			mupd = true;
-		} else {
-			/* Keyboard normal */
-			event.type = msb ? ev_keydown : ev_keyup;
-			event.data1 = ch;
-			D_PostEvent(&event);
+		switch (rv32emu_event.type) {
+			case KEY_EVENT:
+				event.type = rv32emu_event.key_event.state ? ev_keydown : ev_keyup;
+				event.data1 = rv32emu_event.key_event.keycode;
+				D_PostEvent(&event);
+				break;
+			case MOUSE_BUTTON_EVENT:
+				if (rv32emu_event.mouse.button.state)
+					s_btn |= (1 << rv32emu_event.mouse.button.button - 1);
+				else
+					s_btn &= ~(1 << rv32emu_event.mouse.button.button - 1);
+				mupd = true;
+				break;
+			case MOUSE_MOTION_EVENT:
+				mdx += rv32emu_event.mouse.motion.xrel;
+				mdy += rv32emu_event.mouse.motion.yrel;
+				mupd = true;
+				break;
 		}
 	}
 
