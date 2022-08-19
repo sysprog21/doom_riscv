@@ -27,6 +27,18 @@
 #include <stdio.h>
 #include <string.h>
 
+// The packed attribute forces structures to be packed into the minimum
+// space necessary.  If this is not done, the compiler may align structure
+// fields differently to optimise memory access, inflating the overall
+// structure size.  It is important to use the packed attribute on certain
+// structures where alignment is important, particularly data read/written
+// to disk.
+#if defined(__GNUC__) || defined(__clang__)
+#define PACKEDATTR __attribute__((packed))
+#else
+#define PACKEDATTR
+#endif
+
 //
 // Global parameters/defines.
 //

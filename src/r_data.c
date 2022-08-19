@@ -72,7 +72,7 @@ typedef struct
     short       patch;
     short       stepdir;
     short       colormap;
-} mappatch_t;
+} PACKEDATTR mappatch_t;
 
 
 //
@@ -89,7 +89,7 @@ typedef struct
     void                **columndirectory;      // OBSOLETE
     short               patchcount;
     mappatch_t  patches[1];
-} maptexture_t;
+} PACKEDATTR maptexture_t;
 
 
 // A single patch from a texture definition,

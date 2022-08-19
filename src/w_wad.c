@@ -38,6 +38,7 @@ rcsid[] = "$Id: w_wad.c,v 1.5 1997/02/03 16:47:57 b1 Exp $";
 #define O_BINARY                0
 #endif
 
+#include "doomdef.h"
 #include "doomtype.h"
 #include "m_swap.h"
 #include "i_system.h"
@@ -48,9 +49,20 @@ rcsid[] = "$Id: w_wad.c,v 1.5 1997/02/03 16:47:57 b1 Exp $";
 #endif
 #include "w_wad.h"
 
+typedef struct
+{
+    // Should be "IWAD" or "PWAD".
+    char               identification[4];
+    int                numlumps;
+    int                infotableofs;
+} PACKEDATTR wadinfo_t;
 
-
-
+typedef struct
+{
+    int                filepos;
+    int                size;
+    char               name[8];
+} PACKEDATTR filelump_t;
 
 
 //
