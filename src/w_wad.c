@@ -161,6 +161,7 @@ void W_AddFile (char *filename)
     int                 length;
     int                 startlump;
     filelump_t*         fileinfo;
+    filelump_t*         fileinfo_malloc = NULL;
     filelump_t          singleinfo;
     int                 storehandle;
 
@@ -210,7 +211,10 @@ void W_AddFile (char *filename)
         header.numlumps = LONG(header.numlumps);
         header.infotableofs = LONG(header.infotableofs);
         length = header.numlumps*sizeof(filelump_t);
-        fileinfo = alloca (length);
+        fileinfo_malloc = malloc (length);
+        if (!fileinfo_malloc)
+            I_Error ("Couldn't malloc %d bytes for filelumps");
+        fileinfo = fileinfo_malloc;
         lseek (handle, header.infotableofs, SEEK_SET);
         read (handle, fileinfo, length);
         numlumps += header.numlumps;
@@ -221,7 +225,10 @@ void W_AddFile (char *filename)
     lumpinfo = realloc (lumpinfo, numlumps*sizeof(lumpinfo_t));
 
     if (!lumpinfo)
+    {
+        free (fileinfo_malloc);
         I_Error ("Couldn't realloc lumpinfo");
+    }
 
     lump_p = &lumpinfo[startlump];
 
@@ -234,6 +241,8 @@ void W_AddFile (char *filename)
         lump_p->size = LONG(fileinfo->size);
         strncpy (lump_p->name, fileinfo->name, 8);
     }
+
+    free (fileinfo_malloc);
 
     if (reloadname)
         close (handle);
