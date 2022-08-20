@@ -11,6 +11,7 @@ CFLAGS += \
 	-DNORMALUNIX \
 	$(NULL)
 
+CFLAGS += -DSCREENWIDTH=640 -DSCREENHEIGHT=360
 
 include ../sources.mk
 
