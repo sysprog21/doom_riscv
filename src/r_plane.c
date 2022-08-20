@@ -174,8 +174,7 @@ R_MapPlane
     ds_x1 = x1;
     ds_x2 = x2;
 
-    // high or low detail
-    spanfunc ();
+    R_DrawSpan ();
 }
 
 
@@ -396,7 +395,7 @@ void R_DrawPlanes (void)
         // sky flat
         if (pl->picnum == skyflatnum)
         {
-            dc_iscale = pspriteiscale>>detailshift;
+            dc_iscale = pspriteiscale;
 
             // Sky is allways drawn full bright,
             //  i.e. colormaps[0] is used.

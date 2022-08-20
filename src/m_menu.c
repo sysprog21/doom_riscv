@@ -81,8 +81,6 @@ int                     mouseSensitivity;       // has default
 int                     showMessages;
 
 
-// Blocky mode, has default, 0 = high, 1 = normal
-int                     detailLevel;
 int                     screenblocks;           // has default
 
 // temp for screenblocks (0-9)
@@ -197,7 +195,6 @@ void M_ChangeMessages(int choice);
 void M_ChangeSensitivity(int choice);
 void M_SfxVol(int choice);
 void M_MusicVol(int choice);
-void M_ChangeDetail(int choice);
 void M_SizeDisplay(int choice);
 void M_StartGame(int choice);
 void M_Sound(int choice);
@@ -342,7 +339,6 @@ enum
 {
     endgame,
     messages,
-    detail,
     scrnsize,
     option_empty1,
     mousesens,
@@ -355,7 +351,6 @@ menuitem_t OptionsMenu[]=
 {
     {1,"M_ENDGAM",      M_EndGame,'e'},
     {1,"M_MESSG",       M_ChangeMessages,'m'},
-    {1,"M_DETAIL",      M_ChangeDetail,'g'},
     {2,"M_SCRNSZ",      M_SizeDisplay,'s'},
     {-1,"",0},
     {2,"M_MSENS",       M_ChangeSensitivity,'m'},
@@ -953,16 +948,12 @@ void M_Episode(int choice)
 //
 // M_Options
 //
-char    detailNames[2][9]       = {"M_GDHIGH","M_GDLOW"};
 char    msgNames[2][9]          = {"M_MSGOFF","M_MSGON"};
 
 
 void M_DrawOptions(void)
 {
     M_DrawPatchInternal (108,15,0,W_CacheLumpName("M_OPTTTL",PU_CACHE));
-
-    M_DrawPatchInternal (OptionsDef.x + 175,OptionsDef.y+LINEHEIGHT*detail,0,
-                       W_CacheLumpName(detailNames[detailLevel],PU_CACHE));
 
     M_DrawPatchInternal (OptionsDef.x + 120,OptionsDef.y+LINEHEIGHT*messages,0,
                        W_CacheLumpName(msgNames[showMessages],PU_CACHE));
@@ -1137,27 +1128,6 @@ void M_ChangeSensitivity(int choice)
 
 
 
-void M_ChangeDetail(int choice)
-{
-    choice = 0;
-    detailLevel = 1 - detailLevel;
-
-    // FIXME - does not work. Remove anyway?
-    fprintf( stderr, "M_ChangeDetail: low detail mode n.a.\n");
-
-    return;
-
-    /*R_SetViewSize (screenblocks, detailLevel);
-
-    if (!detailLevel)
-        players[consoleplayer].message = DETAILHI;
-    else
-        players[consoleplayer].message = DETAILLO;*/
-}
-
-
-
-
 void M_SizeDisplay(int choice)
 {
     switch(choice)
@@ -1178,8 +1148,7 @@ void M_SizeDisplay(int choice)
         break;
     }
 
-
-    R_SetViewSize (screenblocks, detailLevel);
+   R_SetViewSize (screenblocks);
 }
 
 
@@ -1570,11 +1539,6 @@ boolean M_Responder (event_t* ev)
             M_StartControlPanel ();
             currentMenu = &SoundDef;
             itemOn = sfx_vol;
-            S_StartSound(NULL,sfx_swtchn);
-            return true;
-
-          case KEY_F5:            // Detail toggle
-            M_ChangeDetail(0);
             S_StartSound(NULL,sfx_swtchn);
             return true;
 

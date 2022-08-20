@@ -88,21 +88,12 @@ extern lighttable_t*    fixedcolormap;
 #define NUMCOLORMAPS            32
 
 
-// Blocky/low detail mode.
-//B remove this?
-//  0 = high, 1 = low
-extern  int             detailshift;
-
 
 //
 // Function pointers to switch refresh/drawing functions.
 // Used to select shadow mode etc.
 //
 extern void             (*colfunc) (void);
-extern void             (*basecolfunc) (void);
-extern void             (*fuzzcolfunc) (void);
-// No shadow effects on floors.
-extern void             (*spanfunc) (void);
 
 
 //
@@ -163,7 +154,7 @@ void R_RenderPlayerView (player_t *player);
 void R_Init (void);
 
 // Called by M_Responder.
-void R_SetViewSize (int blocks, int detail);
+void R_SetViewSize (int blocks);
 
 #endif
 //-----------------------------------------------------------------------------

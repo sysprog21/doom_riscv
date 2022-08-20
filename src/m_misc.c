@@ -200,8 +200,6 @@ extern int      viewheight;
 extern int      mouseSensitivity;
 extern int      showMessages;
 
-extern int      detailLevel;
-
 extern int      screenblocks;
 
 extern int      showMessages;
@@ -270,7 +268,6 @@ default_t       defaults[] =
     {"joyb_speed",&joybspeed,2},
 
     {"screenblocks",&screenblocks, 10},
-    {"detaillevel",&detailLevel, 0},
 
     {"snd_channels",&numChannels, 3},
 

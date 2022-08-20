@@ -436,7 +436,7 @@ R_StoreWallRange
 
             gxt = FixedMul(trx,viewcos);
             gyt = -FixedMul(try,viewsin);
-            ds_p->scale1 = FixedDiv(projection, gxt-gyt)<<detailshift;
+            ds_p->scale1 = FixedDiv(projection, gxt-gyt);
         }
 #endif
         ds_p->scale2 = ds_p->scale1;

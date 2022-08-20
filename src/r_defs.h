@@ -294,11 +294,6 @@ typedef post_t  column_t;
 
 
 
-// PC direct to screen pointers
-//B UNUSED - keep till detailshift in r_draw.c resolved
-//extern byte*  destview;
-//extern byte*  destscreen;
-
 
 
 

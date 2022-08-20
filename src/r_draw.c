@@ -250,49 +250,6 @@ void R_DrawColumn (void)
     R_DrawColumnKernel (dest, dc_source, dc_colormap, frac, fracstep, count);
 }
 
-// TODO: Remove support for low detail rendering.
-void R_DrawColumnLow (void)
-{
-    int                 count;
-    byte*               dest;
-    byte*               dest2;
-    fixed_t             frac;
-    fixed_t             fracstep;
-
-    count = dc_yh - dc_yl;
-    if (count < 0)
-        return;
-
-#ifdef RANGECHECK
-    if ((unsigned)dc_x >= SCREENWIDTH
-        || dc_yl < 0
-        || dc_yh >= SCREENHEIGHT)
-    {
-
-        I_Error ("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
-    }
-    //  dccount++;
-#endif
-    // Blocky mode, need to multiply by 2.
-    dc_x <<= 1;
-
-    dest = screens[0] + (viewwindowy + dc_yl) * SCREENWIDTH + (viewwindowx + dc_x);
-    dest2 = dest + 1;
-
-    fracstep = dc_iscale;
-    frac = dc_texturemid + (dc_yl-centery)*fracstep;
-
-    do
-    {
-        // Hack. Does not work corretly.
-        *dest2 = *dest = dc_colormap[dc_source[(frac>>FRACBITS)&127]];
-        dest += SCREENWIDTH;
-        dest2 += SCREENWIDTH;
-        frac += fracstep;
-
-    } while (count--);
-}
-
 
 
 //
@@ -491,59 +448,6 @@ void R_DrawSpan (void)
 }
 
 
-
-//
-// Again..
-//
-// TODO: Remove support for low detail rendering.
-void R_DrawSpanLow (void)
-{
-    fixed_t             xfrac;
-    fixed_t             yfrac;
-    byte*               dest;
-    int                 count;
-    int                 spot;
-
-#ifdef RANGECHECK
-    if (ds_x2 < ds_x1
-        || ds_x1<0
-        || ds_x2>=SCREENWIDTH
-        || (unsigned)ds_y>SCREENHEIGHT)
-    {
-        I_Error( "R_DrawSpan: %i to %i at %i",
-                 ds_x1,ds_x2,ds_y);
-    }
-//      dscount++;
-#endif
-
-    // Blocky mode, need to multiply by 2.
-    ds_x1 <<= 1;
-    ds_x2 <<= 1;
-
-    count = ds_x2 - ds_x1;
-
-    // Zero length.
-    if (count < 0)
-        return;
-
-    dest = screens[0] + (viewwindowy + ds_y) * SCREENWIDTH + (viewwindowx + ds_x1);
-
-    xfrac = ds_xfrac;
-    yfrac = ds_yfrac;
-
-    do
-    {
-        spot = ((yfrac>>(16-6))&(63*64)) + ((xfrac>>16)&63);
-        // Lowres/blocky mode does it twice,
-        //  while scale is adjusted appropriately.
-        *dest++ = ds_colormap[ds_source[spot]];
-        *dest++ = ds_colormap[ds_source[spot]];
-
-        xfrac += ds_xstep;
-        yfrac += ds_ystep;
-
-    } while (count--);
-}
 
 //
 // R_InitBuffer

@@ -409,10 +409,11 @@ R_DrawVisSprite
 
     dc_colormap = vis->colormap;
 
+    void (*old_colfunc) (void) = colfunc;
     if (!dc_colormap)
     {
         // NULL colormap = shadow draw
-        colfunc = fuzzcolfunc;
+        colfunc = R_DrawFuzzColumn;
     }
     else if (vis->mobjflags & MF_TRANSLATION)
     {
@@ -421,7 +422,7 @@ R_DrawVisSprite
             ( (vis->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT-8) );
     }
 
-    dc_iscale = abs(vis->xiscale)>>detailshift;
+    dc_iscale = abs(vis->xiscale);
     dc_texturemid = vis->texturemid;
     frac = vis->startfrac;
     spryscale = vis->scale;
@@ -439,7 +440,7 @@ R_DrawVisSprite
         R_DrawMaskedColumn (column);
     }
 
-    colfunc = basecolfunc;
+    colfunc = old_colfunc;
 }
 
 
@@ -549,7 +550,7 @@ void R_ProjectSprite (mobj_t* thing)
     // store information in a vissprite
     vis = R_NewVisSprite ();
     vis->mobjflags = thing->flags;
-    vis->scale = xscale<<detailshift;
+    vis->scale = xscale;
     vis->gx = thing->x;
     vis->gy = thing->y;
     vis->gz = thing->z;
@@ -594,7 +595,7 @@ void R_ProjectSprite (mobj_t* thing)
     else
     {
         // diminished light
-        index = xscale>>(LIGHTSCALESHIFT-detailshift);
+        index = xscale>>LIGHTSCALESHIFT;
 
         if (index >= MAXLIGHTSCALE)
             index = MAXLIGHTSCALE-1;
@@ -695,7 +696,7 @@ void R_DrawPSprite (pspdef_t* psp)
     vis->texturemid = (BASEYCENTER*FRACUNIT)+FRACUNIT/2-(psp->sy-spritetopoffset[lump]);
     vis->x1 = x1 < 0 ? 0 : x1;
     vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;
-    vis->scale = pspritescale<<detailshift;
+    vis->scale = pspritescale;
 
     if (flip)
     {
