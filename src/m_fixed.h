@@ -96,7 +96,10 @@ inline static fixed_t CONSTFUNC FixedMod(fixed_t a, fixed_t b)
     return (a & (b-1));
 }
 
-//Approx Reciprocal of v
+/*
+ * Approximate Reciprocal of v
+ */
+
 inline static CONSTFUNC fixed_t FixedReciprocal(fixed_t v)
 {
     unsigned int val = v < 0 ? -v : v;
@@ -115,7 +118,10 @@ inline static CONSTFUNC fixed_t FixedReciprocal(fixed_t v)
 }
 
 
-//Approx fixed point divide of a/b using reciprocal. -> a * (1/b).
+/*
+ * Approximate fixed point divide of a/b using reciprocal. -> a * (1/b).
+ */
+
 inline static CONSTFUNC fixed_t FixedApproxDiv(fixed_t a, fixed_t b)
 {
     return FixedMul(a, FixedReciprocal(b));

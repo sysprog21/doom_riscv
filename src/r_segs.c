@@ -172,7 +172,7 @@ R_RenderMaskedSegRange
             }
 
             sprtopscreen = centeryfrac - FixedMul(dc_texturemid, spryscale);
-            dc_iscale = 0xffffffffu / (unsigned)spryscale;
+            dc_iscale = FixedReciprocal((unsigned)spryscale);
 
             // draw the texture
             col = (column_t *)(
@@ -270,7 +270,7 @@ void R_RenderSegLoop (void)
 
             dc_colormap = walllights[index];
             dc_x = rw_x;
-            dc_iscale = 0xffffffffu / (unsigned)rw_scale;
+            dc_iscale = FixedReciprocal((unsigned)rw_scale);
         }
 
         // draw the wall tiers

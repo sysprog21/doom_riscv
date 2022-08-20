@@ -410,7 +410,7 @@ R_PointToDist
     angle = (tantoangle[ FixedDiv(dy,dx)>>DBITS ]+ANG90) >> ANGLETOFINESHIFT;
 
     // use as cosine
-    dist = FixedDiv (dx, finesine[angle] );
+    dist = FixedApproxDiv (dx, finesine[angle] );
 
     return dist;
 }

@@ -461,8 +461,6 @@ void R_ProjectSprite (mobj_t* thing)
     fixed_t             tx;
     fixed_t             tz;
 
-    fixed_t             xscale;
-
     int                 x1;
     int                 x2;
 
@@ -478,7 +476,6 @@ void R_ProjectSprite (mobj_t* thing)
     vissprite_t*        vis;
 
     angle_t             ang;
-    fixed_t             iscale;
 
     // transform the origin point
     tr_x = thing->x - viewx;
@@ -493,7 +490,7 @@ void R_ProjectSprite (mobj_t* thing)
     if (tz < MINZ)
         return;
 
-    xscale = FixedDiv(projection, tz);
+    const fixed_t xscale = FixedDiv(projection, tz);
 
     gxt = -FixedMul(tr_x,viewsin);
     gyt = FixedMul(tr_y,viewcos);
@@ -558,7 +555,7 @@ void R_ProjectSprite (mobj_t* thing)
     vis->texturemid = vis->gzt - viewz;
     vis->x1 = x1 < 0 ? 0 : x1;
     vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;
-    iscale = FixedDiv (FRACUNIT, xscale);
+    const fixed_t iscale = FixedReciprocal(xscale);
 
     if (flip)
     {
