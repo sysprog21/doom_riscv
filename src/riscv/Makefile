@@ -3,14 +3,11 @@ CROSS ?= riscv-none-embed-
 CC = $(CROSS)gcc
 OBJCOPY = $(CROSS)objcopy
 SIZE = $(CROSS)size
-ICEPROG = iceprog
 
+# RISC-V specific options
 CFLAGS=-Wall -O2 -march=rv32im -mabi=ilp32 -ffreestanding -flto -fomit-frame-pointer -Wl,--gc-section --specs=nano.specs -I..
 
-CFLAGS += \
-	-DNORMALUNIX \
-	$(NULL)
-
+# resolution
 CFLAGS += -DSCREENWIDTH=640 -DSCREENHEIGHT=360
 
 include ../sources.mk
@@ -30,8 +27,7 @@ SOURCES_doom_arch := \
 	i_system.c \
 	i_video.c \
 	s_sound.c \
-	console.c  \
-	$(NULL)
+	console.c
 
 
 all: doom-riscv.elf
@@ -47,12 +43,5 @@ clean:
 %.bin: %.elf
 	$(OBJCOPY) -O binary $< $@
 
-prog: doom-riscv.bin
-	$(ICEPROG) -o 1M $<
-
-prog_wad: data/doomu.wad
-	$(ICEPROG) -o 2M $<
-
-
-.PHONY: all clean prog prog_wad
+.PHONY: all clean
 .PRECIOUS: *.elf

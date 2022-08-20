@@ -235,7 +235,6 @@ default_t       defaults[] =
     {"show_messages",&showMessages, 1},
 
 
-#ifdef NORMALUNIX
     {"key_right",&key_right, KEY_RIGHTARROW},
     {"key_left",&key_left, KEY_LEFTARROW},
     {"key_up",&key_up, KEY_UPARROW},
@@ -252,8 +251,6 @@ default_t       defaults[] =
 #ifdef SNDSERV
     {"sndserver", (int *) &sndserver_filename, (int) "sndserver"},
     {"mb_used", &mb_used, 2},
-#endif
-
 #endif
 
     {"use_mouse",&usemouse, 1},

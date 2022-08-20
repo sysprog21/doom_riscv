@@ -25,8 +25,6 @@
 static const char __attribute__((unused))
 rcsid[] = "$Id: w_wad.c,v 1.5 1997/02/03 16:47:57 b1 Exp $";
 
-
-#ifdef NORMALUNIX
 #include <ctype.h>
 #include <sys/types.h>
 #include <string.h>
@@ -36,7 +34,6 @@ rcsid[] = "$Id: w_wad.c,v 1.5 1997/02/03 16:47:57 b1 Exp $";
 #include <sys/stat.h>
 #include <alloca.h>
 #define O_BINARY                0
-#endif
 
 #include "doomdef.h"
 #include "doomtype.h"
