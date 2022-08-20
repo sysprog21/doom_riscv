@@ -598,7 +598,7 @@ void R_FillBackScreen (void)
 
     char*       name;
 
-    if (scaledviewwidth == 320)
+    if (scaledviewwidth == SCREENWIDTH)
         return;
 
     if ( gamemode == commercial)

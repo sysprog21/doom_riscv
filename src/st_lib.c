@@ -99,12 +99,13 @@ STlib_drawNum
 
     int         w = SHORT(n->p[0]->width);
     int         h = SHORT(n->p[0]->height);
-    int         x = n->x;
+    int         x;
 
     int         neg;
 
     n->oldnum = *n->num;
 
+    // Handle sign and overflow (if the number does not fit with a minus sign).
     neg = num < 0;
 
     if (neg)
@@ -113,39 +114,49 @@ STlib_drawNum
             num = -9;
         else if (numdigits == 3 && num < -99)
             num = -99;
-
         num = -num;
     }
 
-    // clear the area
-    x = n->x - numdigits*w;
+    // Clear the area.
+    int srcx = n->x - numdigits*w;
+    int srcy = n->y - ST_Y;
+    if (srcy < 0)
+        I_Error("drawNum: srcy < 0");
+    int dstx = ST_XTOSCREEN (srcx);
+    int dsty = ST_YTOSCREEN (n->y);
 
-    if (n->y - ST_Y < 0)
-        I_Error("drawNum: n->y - ST_Y < 0");
-
-    V_CopyRect(x, n->y - ST_Y, BG, w*numdigits, h, x, n->y, FG);
+    V_CopyRect (srcx, srcy, BG, w * numdigits, h, dstx, dsty, FG);
 
     // if non-number, do not draw it
     if (num == 1994)
         return;
 
-    x = n->x;
-
     // in the special case of 0, you draw 0
     if (!num)
-        V_DrawPatch(x - w, n->y, FG, n->p[ 0 ]);
+    {
+        dstx = ST_XTOSCREEN (n->x - w);
+        dsty = ST_YTOSCREEN (n->y);
+        V_DrawPatch (dstx, dsty, FG, n->p[0]);
+    }
 
-    // draw the new number
+    // Draw the new number.
+    x = n->x;
     while (num && numdigits--)
     {
         x -= w;
-        V_DrawPatch(x, n->y, FG, n->p[ num % 10 ]);
+        dstx = ST_XTOSCREEN (x);
+        dsty = ST_YTOSCREEN (n->y);
+        V_DrawPatch (dstx, dsty, FG, n->p[num % 10]);
         num /= 10;
     }
 
-    // draw a minus sign if necessary
+    // Draw a minus sign if necessary.
     if (neg)
-        V_DrawPatch(x - 8, n->y, FG, sttminus);
+    {
+        dstx = ST_XTOSCREEN (x - 8);
+        dsty = ST_YTOSCREEN (n->y);
+        V_DrawPatch (dstx, dsty, FG, sttminus);
+    }
 }
 
 
@@ -183,9 +194,13 @@ STlib_updatePercent
   int                   refresh )
 {
     if (refresh && *per->n.on)
-        V_DrawPatch(per->n.x, per->n.y, FG, per->p);
+    {
+        int dstx = ST_XTOSCREEN (per->n.x);
+        int dsty = ST_YTOSCREEN (per->n.y);
+        V_DrawPatch (dstx, dsty, FG, per->p);
+    }
 
-    STlib_updateNum(&per->n, refresh);
+    STlib_updateNum (&per->n, refresh);
 }
 
 
@@ -214,28 +229,30 @@ STlib_updateMultIcon
 ( st_multicon_t*        mi,
   boolean               refresh )
 {
-    int                 w;
-    int                 h;
-    int                 x;
-    int                 y;
-
-    if (*mi->on
-        && (mi->oldinum != *mi->inum || refresh)
-        && (*mi->inum!=-1))
+    if (*mi->on && (mi->oldinum != *mi->inum || refresh) && (*mi->inum != -1))
     {
         if (mi->oldinum != -1)
         {
-            x = mi->x - SHORT(mi->p[mi->oldinum]->leftoffset);
-            y = mi->y - SHORT(mi->p[mi->oldinum]->topoffset);
-            w = SHORT(mi->p[mi->oldinum]->width);
-            h = SHORT(mi->p[mi->oldinum]->height);
+            // Clear the area.
+            int x = mi->x - SHORT (mi->p[mi->oldinum]->leftoffset);
+            int y = mi->y - SHORT (mi->p[mi->oldinum]->topoffset);
+            int w = SHORT (mi->p[mi->oldinum]->width);
+            int h = SHORT (mi->p[mi->oldinum]->height);
 
-            if (y - ST_Y < 0)
-                I_Error("updateMultIcon: y - ST_Y < 0");
-
-            V_CopyRect(x, y-ST_Y, BG, w, h, x, y, FG);
+            int srcx = x;
+            int srcy = y - ST_Y;
+            if (srcy < 0)
+                I_Error ("updateMultIcon: srcy < 0");
+            int dstx = ST_XTOSCREEN (x);
+            int dsty = ST_YTOSCREEN (y);
+            V_CopyRect (srcx, srcy, BG, w, h, dstx, dsty, FG);
         }
-        V_DrawPatch(mi->x, mi->y, FG, mi->p[*mi->inum]);
+
+        // Draw the icon.
+        V_DrawPatch (ST_XTOSCREEN (mi->x),
+                     ST_YTOSCREEN (mi->y),
+                     FG,
+                     mi->p[*mi->inum]);
         mi->oldinum = *mi->inum;
     }
 }
@@ -274,18 +291,28 @@ STlib_updateBinIcon
     if (*bi->on
         && (bi->oldval != *bi->val || refresh))
     {
-        x = bi->x - SHORT(bi->p->leftoffset);
-        y = bi->y - SHORT(bi->p->topoffset);
-        w = SHORT(bi->p->width);
-        h = SHORT(bi->p->height);
-
-        if (y - ST_Y < 0)
-            I_Error("updateBinIcon: y - ST_Y < 0");
-
         if (*bi->val)
-            V_DrawPatch(bi->x, bi->y, FG, bi->p);
+        {
+            int dstx = ST_XTOSCREEN (bi->x);
+            int dsty = ST_YTOSCREEN (bi->y);
+            V_DrawPatch (dstx, dsty, FG, bi->p);
+        }
         else
-            V_CopyRect(x, y-ST_Y, BG, w, h, x, y, FG);
+        {
+            // Clear the area.
+            x = bi->x - SHORT (bi->p->leftoffset);
+            y = bi->y - SHORT (bi->p->topoffset);
+            w = SHORT (bi->p->width);
+            h = SHORT (bi->p->height);
+
+            int srcx = x;
+            int srcy = y - ST_Y;
+            if (srcy < 0)
+                I_Error ("updateBinIcon: srcy < 0");
+            int dstx = ST_XTOSCREEN (x);
+            int dsty = ST_YTOSCREEN (y);
+            V_CopyRect (srcx, srcy, BG, w, h, dstx, dsty, FG);
+        }
 
         bi->oldval = *bi->val;
     }

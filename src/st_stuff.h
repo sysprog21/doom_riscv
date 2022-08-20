@@ -30,10 +30,13 @@
 
 // Size of statusbar.
 // Now sensitive for scaling.
-#define ST_HEIGHT       32*SCREEN_MUL
-#define ST_WIDTH        SCREENWIDTH
-#define ST_Y            (SCREENHEIGHT - ST_HEIGHT)
+#define ST_HEIGHT       32
+#define ST_WIDTH        BASE_WIDTH
+#define ST_Y            (BASE_HEIGHT - ST_HEIGHT)
 
+// Convert ST coordinates (320x200) to screen coordinates.
+#define ST_XTOSCREEN(x) ((x) + (SCREENWIDTH - BASE_WIDTH) / 2)
+#define ST_YTOSCREEN(y) ((y) - BASE_HEIGHT + SCREENHEIGHT)
 
 //
 // STATUS BAR

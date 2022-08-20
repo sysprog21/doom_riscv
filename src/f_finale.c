@@ -104,6 +104,8 @@ void F_StartFinale (void)
     // Okay - IWAD dependend stuff.
     // This has been changed severly, and
     //  some stuff might have changed in the process.
+    finaleflat = NULL;
+    finaletext = NULL;
     switch ( gamemode )
     {
 
@@ -177,13 +179,16 @@ void F_StartFinale (void)
           break;
       }
 
-
-      // Indeterminate.
       default:
-        S_ChangeMusic(mus_read_m, true);
-        finaleflat = "F_SKY1"; // Not used anywhere else.
-        finaletext = c1text;  // FIXME - other text, music?
         break;
+    }
+
+    // Indeterminate?
+    if (finaletext == NULL)
+    {
+        finaleflat = "F_SKY1"; // Not used anywhere else.
+        finaletext = c1text;   // FIXME - other text, music?
+        S_ChangeMusic(mus_read_m, true);
     }
 
     finalestage = 0;
@@ -292,8 +297,10 @@ void F_TextWrite (void)
     V_MarkRect (0, 0, SCREENWIDTH, SCREENHEIGHT);
 
     // draw some of the text onto the screen
-    cx = 10;
-    cy = 10;
+    int textareax0 = 10 + (SCREENWIDTH - BASE_WIDTH) / 2;
+    int textareay0 = 10 + (SCREENHEIGHT - BASE_HEIGHT) / 2;
+    cx = textareax0;
+    cy = textareay0;
     ch = finaletext;
 
     count = (finalecount - 10)/TEXTSPEED;
@@ -306,7 +313,7 @@ void F_TextWrite (void)
             break;
         if (c == '\n')
         {
-            cx = 10;
+            cx = textareax0;
             cy += 11;
             continue;
         }
@@ -550,7 +557,7 @@ void F_CastPrint (char* text)
     }
 
     // draw it
-    cx = 160-width/2;
+    cx = SCREENWIDTH/2 - width/2;
     ch = text;
     while (ch)
     {
@@ -565,7 +572,7 @@ void F_CastPrint (char* text)
         }
 
         w = SHORT (hu_font[c]->width);
-        V_DrawPatch(cx, 180, 0, hu_font[c]);
+        V_DrawPatch(cx, TOSCREENY (180), 0, hu_font[c]);
         cx+=w;
     }
 
@@ -586,7 +593,7 @@ void F_CastDrawer (void)
     patch_t*            patch;
 
     // erase the entire screen to a background
-    V_DrawPatch (0,0,0, W_CacheLumpName ("BOSSBACK", PU_CACHE));
+    V_DrawPatchScaled (0,0,0, W_CacheLumpName ("BOSSBACK", PU_CACHE));
 
     F_CastPrint (castorder[castnum].name);
 
@@ -597,10 +604,12 @@ void F_CastDrawer (void)
     flip = (boolean)sprframe->flip[0];
 
     patch = W_CacheLumpNum (lump+firstspritelump, PU_CACHE);
+    int dstx = SCREENWIDTH/2;
+    int dsty = TOSCREENY(170);
     if (flip)
-        V_DrawPatchFlipped (160,170,0,patch);
+        V_DrawPatchFlipped (dstx,dsty,0,patch);
     else
-        V_DrawPatch (160,170,0,patch);
+        V_DrawPatch (dstx,dsty,0,patch);
 }
 
 
@@ -714,21 +723,21 @@ void F_Drawer (void)
         {
           case 1:
             if ( gamemode == retail )
-              V_DrawPatch (0,0,0,
+              V_DrawPatchScaled (0,0,0,
                          W_CacheLumpName("CREDIT",PU_CACHE));
             else
-              V_DrawPatch (0,0,0,
+              V_DrawPatchScaled (0,0,0,
                          W_CacheLumpName("HELP2",PU_CACHE));
             break;
           case 2:
-            V_DrawPatch(0,0,0,
+            V_DrawPatchScaled (0,0,0,
                         W_CacheLumpName("VICTORY2",PU_CACHE));
             break;
           case 3:
             F_BunnyScroll ();
             break;
           case 4:
-            V_DrawPatch (0,0,0,
+            V_DrawPatchScaled (0,0,0,
                          W_CacheLumpName("ENDPIC",PU_CACHE));
             break;
         }
