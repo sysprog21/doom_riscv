@@ -200,9 +200,9 @@ I_GetRemoteEvent(void)
 				break;
 			case MOUSE_BUTTON_EVENT:
 				if (rv32emu_event.mouse.button.state)
-					s_btn |= (1 << rv32emu_event.mouse.button.button - 1);
+					s_btn |= (1 << (rv32emu_event.mouse.button.button - 1));
 				else
-					s_btn &= ~(1 << rv32emu_event.mouse.button.button - 1);
+					s_btn &= ~(1 << (rv32emu_event.mouse.button.button - 1));
 				mupd = true;
 				break;
 			case MOUSE_MOTION_EVENT:
