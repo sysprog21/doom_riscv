@@ -542,7 +542,20 @@ void R_Subsector (int num)
 }
 
 
+// Render a BSP subsector if bspnum is a leaf node.
+// Return false if bspnum is frame node.
+static boolean R_RenderBspSubsector(int bspnum)
+{
+    // Found a subsector?
+    if (bspnum & NF_SUBSECTOR)
+    {
+        R_Subsector((bspnum == -1) ? 0 :
+                                     bspnum & (~NF_SUBSECTOR));
+        return true;
+    }
 
+    return false;
+}
 
 //
 // RenderBSPNode
@@ -554,27 +567,59 @@ void R_RenderBSPNode (int bspnum)
     node_t*     bsp;
     int         side;
 
-    // Found a subsector?
-    if (bspnum & NF_SUBSECTOR)
+    // constant stack space used
+#define MAX_BSP_DEPTH 128
+    int stack[MAX_BSP_DEPTH];
+    int sp = 0;
+
+    while (true)
     {
-        if (bspnum == -1)
-            R_Subsector (0);
-        else
-            R_Subsector (bspnum&(~NF_SUBSECTOR));
-        return;
+        // Front side
+	while (!R_RenderBspSubsector(bspnum))
+        {
+            if (sp == MAX_BSP_DEPTH)
+                break;
+
+            bsp = &nodes[bspnum];
+            side = R_PointOnSide (viewx, viewy, bsp);
+
+            stack[sp++] = bspnum;
+            stack[sp++] = side;
+
+            bspnum = bsp->children[side];
+        }
+
+        if (sp == 0)
+        {
+            //back at root node and not visible. All done!
+            return;
+        }
+
+        // Back side
+        side = stack[--sp];
+        bspnum = stack[--sp];
+        bsp = &nodes[bspnum];
+
+        // Possibly divide back space.
+        // Walk back up the tree until we find a node that has a visable
+        // backspace.
+        while(!R_CheckBBox (bsp->bbox[side^1]))
+        {
+            if (sp == 0)
+            {
+                // back at root node and not visible. All done!
+                return;
+            }
+
+            // Back side next.
+            side = stack[--sp];
+            bspnum = stack[--sp];
+
+            bsp = &nodes[bspnum];
+        }
+
+        bspnum = bsp->children[side^1];
     }
-
-    bsp = &nodes[bspnum];
-
-    // Decide which side the view point is on.
-    side = R_PointOnSide (viewx, viewy, bsp);
-
-    // Recursively divide front space.
-    R_RenderBSPNode (bsp->children[side]);
-
-    // Possibly divide back space.
-    if (R_CheckBBox (bsp->bbox[side^1]))
-        R_RenderBSPNode (bsp->children[side^1]);
 }
 
 
