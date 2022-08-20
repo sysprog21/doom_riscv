@@ -38,15 +38,7 @@
 #define __TABLES__
 
 
-
-#include <math.h>
-
-
 #include "m_fixed.h"
-
-#ifndef PI
-#define PI              3.141592657
-#endif
 
 #define FINEANGLES              8192
 #define FINEMASK                (FINEANGLES-1)
