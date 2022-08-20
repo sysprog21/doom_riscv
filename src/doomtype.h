@@ -56,8 +56,10 @@ typedef unsigned char byte;
 
 #if defined(__GNUC__) || defined(__clang__)
 #define CONSTFUNC __attribute__((const))
+#define PUREFUNC __attribute__((pure))
 #else
 #define CONSTFUNC
+#define PUREFUNC
 #endif
 
 #endif

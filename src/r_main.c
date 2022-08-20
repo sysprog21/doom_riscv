@@ -150,11 +150,11 @@ R_AddPointToBox
 //  check point against partition plane.
 // Returns side 0 (front) or 1 (back).
 //
-int
+PUREFUNC int
 R_PointOnSide
 ( fixed_t       x,
   fixed_t       y,
-  node_t*       node )
+  const node_t*       node )
 {
     fixed_t     dx;
     fixed_t     dy;
@@ -265,6 +265,17 @@ R_PointOnSegSide
     return 1;
 }
 
+static CONSTFUNC int SlopeDiv(unsigned num, unsigned den)
+{
+    den = den >> 8;
+
+    if (den == 0)
+        return SLOPERANGE;
+
+    const unsigned int ans = FixedApproxDiv(num << 3, den) >> FRACBITS;
+
+    return (ans <= SLOPERANGE) ? ans : SLOPERANGE;
+}
 
 //
 // R_PointToAngle
@@ -274,11 +285,6 @@ R_PointOnSegSide
 //  the y (<=x) is scaled and divided by x to get a
 //  tangent (slope) value which is looked up in the
 //  tantoangle[] table.
-
-//
-
-
-
 
 angle_t
 R_PointToAngle

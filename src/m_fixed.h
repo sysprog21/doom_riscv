@@ -63,7 +63,7 @@ inline static int CONSTFUNC D_abs(fixed_t x)
  * Fixed Point Multiplication
  */
 
-inline fixed_t CONSTFUNC FixedMul(fixed_t a, fixed_t b)
+inline static fixed_t CONSTFUNC FixedMul(fixed_t a, fixed_t b)
 {
     return (fixed_t)((int64_t) a * b >> FRACBITS);
 }

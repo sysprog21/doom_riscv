@@ -98,11 +98,11 @@ extern void             (*colfunc) (void);
 
 //
 // Utility functions.
-int
+PUREFUNC int
 R_PointOnSide
 ( fixed_t       x,
   fixed_t       y,
-  node_t*       node );
+  const node_t*       node );
 
 int
 R_PointOnSegSide
