@@ -98,17 +98,20 @@ const int fuzzoffset[FUZZTABLE] =
 // put your effort.
 //
 
+#define COLEXTRABITS 9
+#define COLBITS (FRACBITS + COLEXTRABITS)
+
 static void R_DrawColumnKernel (byte* dst,
                                 const byte* const src,
                                 const lighttable_t* const colormap,
-                                fixed_t frac,
-                                const fixed_t fracstep,
+                                unsigned int  frac,
+                                const unsigned int fracstep,
                                 const int count)
 {
     for (int i = count; i >= 0; --i)
     {
         // Current texture index. All wall textures are 128 high.
-        int idx = (frac >> FRACBITS) & 127;
+        int idx = (frac >> COLBITS);
 
         // Re-map color indices from wall texture column using a
         // lighting/special effects LUT.
@@ -225,8 +228,6 @@ void R_DrawColumn (void)
 {
     int                 count;
     byte*               dest;
-    fixed_t             frac;
-    fixed_t             fracstep;
 
     count = dc_yh - dc_yl;
     if (count < 0)
@@ -244,8 +245,8 @@ void R_DrawColumn (void)
 
     // Determine scaling,
     //  which is the only mapping to be done.
-    fracstep = dc_iscale;
-    frac = dc_texturemid + (dc_yl-centery)*fracstep;
+    const unsigned int fracstep = dc_iscale << COLEXTRABITS;
+    unsigned int frac = (dc_texturemid + (dc_yl - centery)*dc_iscale) << COLEXTRABITS;
 
     R_DrawColumnKernel (dest, dc_source, dc_colormap, frac, fracstep, count);
 }
