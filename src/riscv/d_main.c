@@ -232,12 +232,14 @@ void D_Display (void)
             break;
         if (automapactive)
             AM_Drawer ();
-        if (wipe || (viewheight != 200 && fullscreen) )
+        if (wipe || (viewheight != SCREENHEIGHT && fullscreen) )
             redrawsbar = true;
         if (inhelpscreensstate && !inhelpscreens)
             redrawsbar = true;              // just put away the help screen
-        ST_Drawer (viewheight == 200, redrawsbar );
-        fullscreen = viewheight == 200;
+        if (menuactivestate)
+            redrawsbar = true;              // menu may have overdrawn the bar
+        ST_Drawer (viewheight == SCREENHEIGHT, redrawsbar );
+        fullscreen = viewheight == SCREENHEIGHT;
         break;
 
       case GS_INTERMISSION:
@@ -275,7 +277,7 @@ void D_Display (void)
     }
 
     // see if the border needs to be updated to the screen
-    if (gamestate == GS_LEVEL && !automapactive && scaledviewwidth != 320)
+    if (gamestate == GS_LEVEL && !automapactive && scaledviewwidth != SCREENWIDTH)
     {
         if (menuactive || menuactivestate || !viewactivestate)
             borderdrawcount = 3;
