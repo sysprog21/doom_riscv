@@ -512,6 +512,13 @@ static inline void M_DrawPatchInternal (int x, int y, int scrn, patch_t *patch)
     V_DrawPatchDirect (x, y, scrn, patch);
 }
 
+static void M_SetRelativeMode(boolean enabled) {
+    register int a0 asm("a0") = enabled;
+    register int a7 asm("a7") = 0xfeed;
+    
+    asm volatile("scall" : : "r"(a0), "r"(a7));
+}
+
 //
 // M_ReadSaveStrings
 //  read the strings from the savegame files
@@ -1700,6 +1707,7 @@ void M_StartControlPanel (void)
         return;
 
     menuactive = 1;
+    M_SetRelativeMode(false);
     currentMenu = &MainDef;         // JDC
     itemOn = currentMenu->lastOn;   // JDC
 }
@@ -1784,6 +1792,7 @@ void M_Drawer (void)
 void M_ClearMenus (void)
 {
     menuactive = 0;
+    M_SetRelativeMode(true);
     // if (!netgame && usergame && paused)
     //       sendpause = true;
 }
