@@ -5,7 +5,7 @@ OBJCOPY = $(CROSS)objcopy
 SIZE = $(CROSS)size
 
 # RISC-V specific options
-CFLAGS=-Wall -O2 -march=rv32im -mabi=ilp32 -ffreestanding -flto -fomit-frame-pointer -Wl,--gc-section --specs=nano.specs -I..
+CFLAGS=-Wall -Ofast -march=rv32im -mabi=ilp32 -ffreestanding -flto -fomit-frame-pointer -Wl,--gc-section --specs=nano.specs -I..
 
 # resolution
 CFLAGS += -DSCREENWIDTH=640 -DSCREENHEIGHT=360
