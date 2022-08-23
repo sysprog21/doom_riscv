@@ -1171,21 +1171,17 @@ void AM_drawWalls(void)
 // Rotation in 2D.
 // Used to rotate player arrow line character.
 //
-void
+static void
 AM_rotate
 ( fixed_t*      x,
   fixed_t*      y,
   angle_t       a )
 {
-    fixed_t tmpx;
+    a >>= ANGLETOFINESHIFT;
 
-    tmpx =
-        FixedMul(*x,finecosine[a>>ANGLETOFINESHIFT])
-        - FixedMul(*y,finesine[a>>ANGLETOFINESHIFT]);
+    fixed_t tmpx = FixedMul(*x, finecosine[a]) - FixedMul(*y, finesine[a]);
 
-    *y   =
-        FixedMul(*x,finesine[a>>ANGLETOFINESHIFT])
-        + FixedMul(*y,finecosine[a>>ANGLETOFINESHIFT]);
+    *y = FixedMul(*x, finesine[a]) + FixedMul(*y, finecosine[a]);
 
     *x = tmpx;
 }
