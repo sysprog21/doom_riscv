@@ -772,8 +772,11 @@ void R_SetupFrame (player_t* player)
 
     viewz = player->viewz;
 
-    viewsin = finesine[viewangle>>ANGLETOFINESHIFT];
-    viewcos = finecosine[viewangle>>ANGLETOFINESHIFT];
+    {
+        const fixed_t viewangle_shifted = viewangle >> ANGLETOFINESHIFT;
+        viewsin = finesine[viewangle_shifted];
+        viewcos = finecosine[viewangle_shifted];
+    }
 
     sscount = 0;
 
