@@ -979,10 +979,11 @@ P_SpawnPlayerMissile
 
     th->target = source;
     th->angle = an;
+    an >>= ANGLETOFINESHIFT;
     th->momx = FixedMul( th->info->speed,
-                         finecosine[an>>ANGLETOFINESHIFT]);
+                         finecosine[an]);
     th->momy = FixedMul( th->info->speed,
-                         finesine[an>>ANGLETOFINESHIFT]);
+                         finesine[an]);
     th->momz = FixedMul( th->info->speed, slope);
 
     P_CheckMissileSpawn (th);
