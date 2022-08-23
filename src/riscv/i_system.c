@@ -255,10 +255,8 @@ I_Quit(void)
 byte *
 I_AllocLow(int length)
 {
-	byte*	mem;
-	mem = (byte *)malloc (length);
-	memset (mem,0,length);
-	return mem;
+	/* FIXME: check if memory allocation succeeds */
+	return calloc(1, length);
 }
 
 
