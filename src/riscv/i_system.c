@@ -4,7 +4,7 @@
  * System support code
  *
  * Copyright (C) 1993-1996 by id Software, Inc.
- * Copyright (C) 2021 Sylvain Munaut
+ * Copyright (C) 2022 National Cheng Kung University, Taiwan.
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or

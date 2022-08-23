@@ -1,7 +1,7 @@
 /*
  * console.c
  *
- * Copyright (C) 2019-2021 Sylvain Munaut
+ * Copyright (C) 2022 National Cheng Kung University, Taiwan.
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or

@@ -3,7 +3,7 @@
  *
  * Video system support code
  *
- * Copyright (C) 2021 Sylvain Munaut
+ * Copyright (C) 2022 National Cheng Kung University, Taiwan.
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
@@ -53,12 +53,10 @@ I_ShutdownGraphics(void)
 void
 I_SetPalette(byte* palette)
 {
-	byte r, g, b;
-
 	for (int i=0 ; i<256 ; i++) {
-		r = gammatable[usegamma][*palette++];
-		g = gammatable[usegamma][*palette++];
-		b = gammatable[usegamma][*palette++];
+		byte r = gammatable[usegamma][*palette++];
+		byte g = gammatable[usegamma][*palette++];
+		byte b = gammatable[usegamma][*palette++];
 		video_pal[i] = ((uint32_t)r << 16) | ((uint32_t)g << 8) | (uint32_t)b;
 	}
 }
@@ -110,26 +108,9 @@ I_WaitVBL(int count)
 void
 I_ReadScreen(byte* scr)
 {
-	/* FIXME: Would have though reading from VID_FB_BASE be better ...
-	 *        but it seems buggy. Not sure if the problem is in the
-	 *        gateware
-	 */
 	memcpy(
 		scr,
 		screens[0],
 		SCREENHEIGHT * SCREENWIDTH
 	);
 }
-
-
-#if 0	/* WTF ? Not used ... */
-void
-I_BeginRead(void)
-{
-}
-
-void
-I_EndRead(void)
-{
-}
-#endif
