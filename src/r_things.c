@@ -862,7 +862,6 @@ void R_DrawSprite (vissprite_t* spr)
     int                 r2;
     fixed_t             scale;
     fixed_t             lowscale;
-    int                 silhouette;
 
     for (x = spr->x1 ; x<=spr->x2 ; x++)
         clipbot[x] = cliptop[x] = -2;
@@ -870,13 +869,11 @@ void R_DrawSprite (vissprite_t* spr)
     // Scan drawsegs from end to start for obscuring segs.
     // The first drawseg that has a greater scale
     //  is the clip seg.
-    for (ds=ds_p-1 ; ds >= drawsegs ; ds--)
+    for (ds = ds_p; ds-- > drawsegs; )
     {
         // determine if the drawseg obscures the sprite
-        if (ds->x1 > spr->x2
-            || ds->x2 < spr->x1
-            || (!ds->silhouette
-                && !ds->maskedtexturecol) )
+	if (ds->x1 > spr->x2 || ds->x2 < spr->x1 ||
+            (!ds->silhouette && !ds->maskedtexturecol))
         {
             // does not cover sprite
             continue;
@@ -909,35 +906,15 @@ void R_DrawSprite (vissprite_t* spr)
 
 
         // clip this piece of the sprite
-        silhouette = ds->silhouette;
-
-        if (spr->gz >= ds->bsilheight)
-            silhouette &= ~SIL_BOTTOM;
-
-        if (spr->gzt <= ds->tsilheight)
-            silhouette &= ~SIL_TOP;
-
-        if (silhouette == 1)
-        {
-            // bottom sil
-            for (x=r1 ; x<=r2 ; x++)
+	if (ds->silhouette & SIL_BOTTOM && spr->gz < ds->bsilheight) { // bottom sil
+            for (x = r1 ; x <= r2 ; x++) {
                 if (clipbot[x] == -2)
                     clipbot[x] = ds->sprbottomclip[x];
+            }
         }
-        else if (silhouette == 2)
-        {
-            // top sil
-            for (x=r1 ; x<=r2 ; x++)
-                if (cliptop[x] == -2)
-                    cliptop[x] = ds->sprtopclip[x];
-        }
-        else if (silhouette == 3)
-        {
-            // both
-            for (x=r1 ; x<=r2 ; x++)
-            {
-                if (clipbot[x] == -2)
-                    clipbot[x] = ds->sprbottomclip[x];
+
+        if (ds->silhouette & SIL_TOP && spr->gzt > ds->tsilheight) { // top sil
+            for (x = r1 ; x <= r2 ; x++) {
                 if (cliptop[x] == -2)
                     cliptop[x] = ds->sprtopclip[x];
             }
@@ -988,9 +965,10 @@ void R_DrawMasked (void)
     }
 
     // render any remaining masked mid textures
-    for (ds=ds_p-1 ; ds >= drawsegs ; ds--)
+    for (ds = ds_p; ds-- > drawsegs; ) {
         if (ds->maskedtexturecol)
             R_RenderMaskedSegRange (ds, ds->x1, ds->x2);
+    }
 
     // draw the psprites on top of everything
     //  but does not draw on side views
