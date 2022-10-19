@@ -51,8 +51,7 @@ typedef struct {
 } key_event_t;
 
 typedef struct {
-	int32_t xrel;
-	int32_t yrel;
+	int32_t xrel, yrel;
 } mouse_motion_t;
 
 typedef struct {
@@ -69,16 +68,57 @@ typedef struct {
 			mouse_button_t button;
 		} mouse;
 	};
-} rv32emu_event_t;
+} emu_event_t;
+
+typedef struct {
+	emu_event_t *base;
+	size_t start;
+} event_queue_t;
+
+enum {
+	RELATIVE_MODE_SUBMISSION = 0,
+};
+
+typedef struct {
+	uint32_t type;
+	union {
+		union {
+			uint8_t enabled;
+		} mouse;
+	};
+} emu_submission_t;
+
+typedef struct {
+	emu_submission_t *base;
+	size_t end;
+} submission_queue_t;
 
 /* Video Ticks tracking */
 static uint16_t vt_last = 0;
 static uint32_t vt_base = 0;
 
+static event_queue_t event_queue = {
+	.base = NULL,
+	.start = 0,
+};
+static submission_queue_t submission_queue = {
+	.base = NULL,
+	.end = 0,
+};
+static unsigned int event_count = 0;
+const int queues_capacity = 128;
 
 void
 I_Init(void)
 {
+	void *base = malloc(sizeof(emu_event_t) * queues_capacity + sizeof(emu_submission_t) * queues_capacity);
+	event_queue.base = base;
+	submission_queue.base = base;
+	register int a0 asm("a0") = (uintptr_t) base;
+	register int a1 asm("a1") = queues_capacity;
+	register int a2 asm("a2") = (uintptr_t) &event_count;
+	register int a7 asm("a7") = 0xc0de;
+	asm volatile("scall" : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
 }
 
 
@@ -104,12 +144,16 @@ I_GetTime(void)
 	return vt_base + vt_now;
 }
 
-static int PollEvent(rv32emu_event_t* event)
+static int PollEvent(emu_event_t* event)
 {
-	register int a0 asm("a0") = (uintptr_t) event;
-	register int a7 asm("a7") = 0xc0de;
-	asm volatile("scall" : "+r"(a0) : "r"(a7));
-	return a0;
+	if (event_count <= 0)
+		return 0;
+
+	*event = event_queue.base[event_queue.start++];
+	event_queue.start &= queues_capacity - 1;
+	--event_count;
+
+	return 1;
 }
 
 static void
@@ -123,10 +167,10 @@ I_GetRemoteEvent(void)
 	int mdx = 0;
 	int mdy = 0;
 
-	rv32emu_event_t rv32emu_event;
-	while (PollEvent(&rv32emu_event)) {
-		if (rv32emu_event.type == KEY_EVENT && rv32emu_event.key_event.keycode & 0x40000000) {
-			uint32_t keycode = rv32emu_event.key_event.keycode;
+	emu_event_t emu_event;
+	while (PollEvent(&emu_event)) {
+		if (emu_event.type == KEY_EVENT && emu_event.key_event.keycode & 0x40000000) {
+			uint32_t keycode = emu_event.key_event.keycode;
 			switch (keycode) {
 				case 0x40000050:
 					keycode = KEY_LEFTARROW;
@@ -189,25 +233,25 @@ I_GetRemoteEvent(void)
 					keycode = KEY_F12;
 					break;
 			}
-			rv32emu_event.key_event.keycode = keycode;
+			emu_event.key_event.keycode = keycode;
 		}
 
-		switch (rv32emu_event.type) {
+		switch (emu_event.type) {
 			case KEY_EVENT:
-				event.type = rv32emu_event.key_event.state ? ev_keydown : ev_keyup;
-				event.data1 = rv32emu_event.key_event.keycode;
+				event.type = emu_event.key_event.state ? ev_keydown : ev_keyup;
+				event.data1 = emu_event.key_event.keycode;
 				D_PostEvent(&event);
 				break;
 			case MOUSE_BUTTON_EVENT:
-				if (rv32emu_event.mouse.button.state)
-					s_btn |= (1 << (rv32emu_event.mouse.button.button - 1));
+				if (emu_event.mouse.button.state)
+					s_btn |= (1 << (emu_event.mouse.button.button - 1));
 				else
-					s_btn &= ~(1 << (rv32emu_event.mouse.button.button - 1));
+					s_btn &= ~(1 << (emu_event.mouse.button.button - 1));
 				mupd = true;
 				break;
 			case MOUSE_MOTION_EVENT:
-				mdx += rv32emu_event.mouse.motion.xrel;
-				mdy += rv32emu_event.mouse.motion.yrel;
+				mdx += emu_event.mouse.motion.xrel;
+				mdy += emu_event.mouse.motion.yrel;
 				mupd = true;
 				break;
 		}
@@ -216,7 +260,7 @@ I_GetRemoteEvent(void)
 	if (mupd) {
 		event.type = ev_mouse;
 		event.data1 = s_btn;
-		event.data2 =   mdx << 2;
+		event.data2 =	mdx << 2;
 		event.data3 = - mdy << 2;	/* Doom is sort of inverted ... */
 		D_PostEvent(&event);
 	}
