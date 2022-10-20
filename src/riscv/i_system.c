@@ -75,24 +75,6 @@ typedef struct {
 	size_t start;
 } event_queue_t;
 
-enum {
-	RELATIVE_MODE_SUBMISSION = 0,
-};
-
-typedef struct {
-	uint32_t type;
-	union {
-		union {
-			uint8_t enabled;
-		} mouse;
-	};
-} emu_submission_t;
-
-typedef struct {
-	emu_submission_t *base;
-	size_t end;
-} submission_queue_t;
-
 /* Video Ticks tracking */
 static uint16_t vt_last = 0;
 static uint32_t vt_base = 0;
@@ -101,11 +83,12 @@ static event_queue_t event_queue = {
 	.base = NULL,
 	.start = 0,
 };
-static submission_queue_t submission_queue = {
+static unsigned int event_count = 0;
+
+submission_queue_t submission_queue = {
 	.base = NULL,
 	.end = 0,
 };
-static unsigned int event_count = 0;
 const int queues_capacity = 128;
 
 void
@@ -113,12 +96,21 @@ I_Init(void)
 {
 	void *base = malloc(sizeof(emu_event_t) * queues_capacity + sizeof(emu_submission_t) * queues_capacity);
 	event_queue.base = base;
-	submission_queue.base = base;
+	submission_queue.base = base + sizeof(emu_event_t) * queues_capacity;
 	register int a0 asm("a0") = (uintptr_t) base;
 	register int a1 asm("a1") = queues_capacity;
 	register int a2 asm("a2") = (uintptr_t) &event_count;
 	register int a7 asm("a7") = 0xc0de;
 	asm volatile("scall" : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
+
+	emu_submission_t submission;
+	submission.type = RELATIVE_MODE_SUBMISSION;
+	submission.mouse.enabled = true;
+	submission_queue.base[submission_queue.end++] = submission;
+	submission_queue.end &= queues_capacity - 1;
+	a0 = 1;
+	a7 = 0xfeed;
+	asm volatile("scall" : "+r"(a0) : "r"(a7));
 }
 
 
