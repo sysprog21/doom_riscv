@@ -267,9 +267,8 @@ R_PointOnSegSide
 
 static CONSTFUNC int SlopeDiv(unsigned num, unsigned den)
 {
-    den = den >> 8;
-
-    if (den == 0)
+    den >>= 8;
+    if (den < 2)
         return SLOPERANGE;
 
     const unsigned int ans = FixedApproxDiv(num << 3, den) >> FRACBITS;
