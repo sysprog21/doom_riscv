@@ -539,7 +539,7 @@ void R_ProjectSprite (mobj_t* thing)
         return;
 
     tx +=  spritewidth[lump];
-    x2 = ((centerxfrac + FixedMul (tx,xscale) ) >>FRACBITS) - 1;
+    x2 = ((centerxfrac + FixedMul (tx,xscale) - FRACUNIT/2) >>FRACBITS) - 1;
 
     // off the left side
     if (x2 < 0)
