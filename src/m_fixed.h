@@ -34,6 +34,7 @@
 #define __M_FIXED__
 
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "doomtype.h"
 #include "m_recip.h"
@@ -52,12 +53,17 @@ typedef int fixed_t;
  * Absolute Value
  */
 
+#if 0
 inline static int CONSTFUNC D_abs(fixed_t x)
 {
     fixed_t _t = (x), _s;
     _s = _t >> (8 * sizeof _t - 1);
     return (_t ^ _s) - _s;
 }
+#else
+/* let compilers optimize the calls of abs */
+#define D_abs abs
+#endif
 
 /*
  * Fixed Point Multiplication
