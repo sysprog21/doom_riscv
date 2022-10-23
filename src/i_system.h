@@ -24,6 +24,9 @@
 #ifndef __I_SYSTEM__
 #define __I_SYSTEM__
 
+#include <stdint.h>
+#include <stdlib.h>
+
 #include "d_ticcmd.h"
 #include "d_event.h"
 
@@ -31,6 +34,26 @@
 #pragma interface
 #endif
 
+enum {
+	RELATIVE_MODE_SUBMISSION = 0,
+};
+
+typedef struct {
+	uint32_t type;
+	union {
+		union {
+			uint8_t enabled;
+		} mouse;
+	};
+} emu_submission_t;
+
+typedef struct {
+	emu_submission_t *base;
+	size_t end;
+} submission_queue_t;
+
+extern submission_queue_t submission_queue;
+extern const int queues_capacity;
 
 // Called by DoomMain.
 void I_Init (void);
