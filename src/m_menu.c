@@ -1700,6 +1700,7 @@ void M_StartControlPanel (void)
         return;
 
     menuactive = 1;
+    I_SetRelativeMode(false);
     currentMenu = &MainDef;         // JDC
     itemOn = currentMenu->lastOn;   // JDC
 }
@@ -1784,6 +1785,7 @@ void M_Drawer (void)
 void M_ClearMenus (void)
 {
     menuactive = 0;
+    I_SetRelativeMode(true);
     // if (!netgame && usergame && paused)
     //       sendpause = true;
 }
