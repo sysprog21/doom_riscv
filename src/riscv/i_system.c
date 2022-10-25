@@ -109,16 +109,30 @@ static unsigned int event_count = 0;
 const int queues_capacity = 128;
 
 void
+I_SetRelativeMode(boolean enabled)
+{
+	emu_submission_t submission;
+	submission.type = RELATIVE_MODE_SUBMISSION;
+	submission.mouse.enabled = enabled;
+	submission_queue.base[submission_queue.end++] = submission;
+	submission_queue.end &= queues_capacity - 1;
+	register int a0 asm("a0") = 1;
+	register int a7 asm("a7") = 0xfeed;
+	asm volatile("scall" : "+r"(a0) : "r"(a7));
+}
+
+void
 I_Init(void)
 {
 	void *base = malloc(sizeof(emu_event_t) * queues_capacity + sizeof(emu_submission_t) * queues_capacity);
 	event_queue.base = base;
-	submission_queue.base = base;
+	submission_queue.base = base + sizeof(emu_event_t) * queues_capacity;
 	register int a0 asm("a0") = (uintptr_t) base;
 	register int a1 asm("a1") = queues_capacity;
 	register int a2 asm("a2") = (uintptr_t) &event_count;
 	register int a7 asm("a7") = 0xc0de;
 	asm volatile("scall" : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
+	I_SetRelativeMode(true);
 }
 
 
