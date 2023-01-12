@@ -27,6 +27,15 @@
 #include <stdio.h>
 #include <string.h>
 
+// Disable screens wipe effect, you will get worse game experience, 
+// but it can save about 130KB on DOOMHEAP.
+#define DISABLE_WIPES
+
+// Discard screen buffers, any screen effect will direct output on your screen, 
+// It can save 192kb on heap. 
+// Remeber you can only use this when disable screens wipe.
+#define COMBINE_SCREENS
+
 // The packed attribute forces structures to be packed into the minimum
 // space necessary.  If this is not done, the compiler may align structure
 // fields differently to optimise memory access, inflating the overall
