@@ -40,9 +40,9 @@
 #include "console.h"
 
 #ifdef COMBINE_SCREENS
-unsigned char CombinedScreens[SCREENWIDTH*SCREENHEIGHT];
+static unsigned char CombinedScreens[SCREENWIDTH*SCREENHEIGHT];
 #else
-unsigned char CombinedScreens[SCREENWIDTH*SCREENHEIGHT*4];
+static unsigned char CombinedScreens[SCREENWIDTH*SCREENHEIGHT*4];
 #endif
 
 /* Original 6M - wipe function (130560 bytes) */
@@ -52,7 +52,7 @@ unsigned char CombinedScreens[SCREENWIDTH*SCREENHEIGHT*4];
 #define DOOM_HEAP_SIZE  6*1024*1024
 #endif
 
-unsigned char DOOMHeap[DOOM_HEAP_SIZE];
+static unsigned char DOOMHeap[DOOM_HEAP_SIZE];
 
 enum {
 	KEY_EVENT = 0,
