@@ -303,6 +303,7 @@ I_BaseTiccmd(void)
 void
 I_Quit(void)
 {
+	I_ShutdownSound();
 	D_QuitNetGame();
 	M_SaveDefaults();
 	I_ShutdownGraphics();

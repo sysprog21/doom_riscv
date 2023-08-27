@@ -403,7 +403,6 @@ void G_BuildTiccmd (ticcmd_t* cmd)
         }
     }
 
-    forward += mousey;
     if (strafe)
         side += mousex*2;
     else
