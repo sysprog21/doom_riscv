@@ -36,7 +36,15 @@ extern char* sndserver_filename;
 #include "doomstat.h"
 #include "sounds.h"
 
-
+/* sound request for SDL-related system calls */
+enum {
+        INIT_SOUND,
+        SHUTDOWN_SOUND,
+        PLAY_MUSIC,
+        PLAY_SFX,
+        SET_MUSIC_VOLUME,
+        STOP_MUSIC,
+};
 
 // Init at program start...
 void I_InitSound();
@@ -60,18 +68,17 @@ void I_SetChannels();
 int I_GetSfxLumpNum (sfxinfo_t* sfxinfo );
 
 
-// Starts a sound in a particular sound channel.
-int
+void
 I_StartSound
-( int           id,
-  int           vol,
-  int           sep,
-  int           pitch,
-  int           priority );
+( void*         data,
+  int           volume);
 
 
 // Stops a sound channel.
 void I_StopSound(int handle);
+
+// Volume.
+void I_SetSfxVolume(int volume);
 
 // Called by S_*() functions
 //  to see if a channel is still playing.
@@ -106,10 +113,10 @@ int I_RegisterSong(void *data);
 // Horrible thing to do, considering.
 void
 I_PlaySong
-( int           handle,
-  int           looping );
-// Stops a song over 3 seconds.
-void I_StopSong(int handle);
+( void*         data,
+  int           looping,
+  int           volume );
+void I_StopSong(void);
 // See above (register), then think backwards
 void I_UnRegisterSong(int handle);
 
