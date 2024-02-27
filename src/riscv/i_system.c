@@ -43,6 +43,7 @@ enum {
 	KEY_EVENT = 0,
 	MOUSE_MOTION_EVENT = 1,
 	MOUSE_BUTTON_EVENT = 2,
+	QUIT_EVENT = 3,
 };
 
 typedef struct {
@@ -51,7 +52,7 @@ typedef struct {
 } key_event_t;
 
 typedef struct {
-	int32_t xrel, yrel;
+	int32_t x, y, xrel, yrel;
 } mouse_motion_t;
 
 typedef struct {
@@ -77,14 +78,23 @@ typedef struct {
 
 enum {
 	RELATIVE_MODE_SUBMISSION = 0,
+	WINDOW_TITLE_SUBMISSION = 1,
 };
+
+typedef struct {
+	uint8_t enabled;
+} mouse_submission_t;
+
+typedef struct {
+	uint32_t title;
+	uint32_t size;
+} title_submission_t;
 
 typedef struct {
 	uint32_t type;
 	union {
-		union {
-			uint8_t enabled;
-		} mouse;
+		mouse_submission_t mouse;
+		title_submission_t title;
 	};
 } emu_submission_t;
 
@@ -268,14 +278,17 @@ I_GetRemoteEvent(void)
 				mdy += emu_event.mouse.motion.yrel;
 				mupd = true;
 				break;
+			case QUIT_EVENT:
+				I_Quit();
+				break;
 		}
 	}
 
 	if (mupd) {
 		event.type = ev_mouse;
 		event.data1 = s_btn;
-		event.data2 =	mdx << 2;
-		event.data3 = - mdy << 2;	/* Doom is sort of inverted ... */
+		event.data2 =   mdx << 2;
+		event.data3 = - mdy << 2;   /* Doom is sort of inverted ... */
 		D_PostEvent(&event);
 	}
 }
@@ -333,7 +346,7 @@ I_Tactile
 void
 I_Error(char *error, ...)
 {
-	va_list	argptr;
+	va_list argptr;
 
 	// Message first.
 	va_start (argptr,error);
