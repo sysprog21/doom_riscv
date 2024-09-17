@@ -27,6 +27,24 @@
 #include <stdio.h>
 #include <string.h>
 
+// Disable screens wipe effect, you will get worse game experience, 
+// but it can save about 130KB on DOOMHEAP.
+// In f_wipe.c, only wipe_initMelt() and wipe_shittyColMajorXform() call Z_Malloc ask for some sapce,
+// wipe_initMelt() ask 320 * 8(width * sizeof(int)) = 2560 bytes,
+// wipe_shittyColMajorXform() ask 160 * 200 * 2(width/2 * height*2) = 64000 bytes,
+// it will be call twice so it will totaly ask 128000 bytes,
+// it means we can save 2560 + 128000 = 130560 bytes on DOOMHEAP when disable screens wipe.
+#define DISABLE_WIPES
+
+// Discard screen buffers, any screen effect will direct output on your screen, 
+// It can save 192kb memory usage.
+// Each screen buffer is 320 * 200 * 1 = 64000 bytes, 
+// COMBINE_SCREENS will make four screen buffers merge to one,
+// so we can save (4 - 1) * 320 * 200 = 192000 bytes.
+// In this Implement it will set "CombinedScreens[SCREENWIDTH*SCREENHEIGHT]" to replace original "CombinedScreens[SCREENWIDTH*SCREENHEIGHT*4]".
+// Remeber you can only use this when disable screens wipe.
+#define COMBINE_SCREENS
+
 // The packed attribute forces structures to be packed into the minimum
 // space necessary.  If this is not done, the compiler may align structure
 // fields differently to optimise memory access, inflating the overall

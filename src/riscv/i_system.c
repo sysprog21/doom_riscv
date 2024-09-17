@@ -39,6 +39,21 @@
 
 #include "console.h"
 
+#ifdef COMBINE_SCREENS
+static unsigned char CombinedScreens[SCREENWIDTH*SCREENHEIGHT];
+#else
+static unsigned char CombinedScreens[SCREENWIDTH*SCREENHEIGHT*4];
+#endif
+
+/* Original 6M - wipe function (130560 bytes) */
+#ifdef DISABLE_WIPES
+#define DOOM_HEAP_SIZE  6*1024*1024 - 130560
+#else
+#define DOOM_HEAP_SIZE  6*1024*1024
+#endif
+
+static unsigned char DOOMHeap[DOOM_HEAP_SIZE];
+
 enum {
 	KEY_EVENT = 0,
 	MOUSE_MOTION_EVENT = 1,
@@ -149,9 +164,9 @@ I_Init(void)
 byte *
 I_ZoneBase(int *size)
 {
-	/* Give 6M to DOOM */
-	*size = 6 * 1024 * 1024;
-	return (byte *) malloc (*size);
+	/* Give DOOM_HEAP_SIZE to DOOM */
+	*size = DOOM_HEAP_SIZE;
+	return (byte *) DOOMHeap;
 }
 
 
@@ -327,8 +342,11 @@ I_Quit(void)
 byte *
 I_AllocLow(int length)
 {
-	/* FIXME: check if memory allocation succeeds */
-	return calloc(1, length);
+	/* Return screen buffer */
+	byte*	mem;
+	mem = CombinedScreens;
+	memset (mem,0,length);
+	return mem;
 }
 
 
