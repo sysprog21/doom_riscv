@@ -5,7 +5,8 @@ OBJCOPY = $(CROSS)objcopy
 SIZE = $(CROSS)size
 
 # RISC-V specific options
-CFLAGS=-Wall -Ofast -march=rv32im -mabi=ilp32 -ffreestanding -flto -fomit-frame-pointer -Wl,--gc-section --specs=nano.specs -I..
+CFLAGS=-Wall -O3 -march=rv32im -mabi=ilp32 -ffreestanding -flto -fomit-frame-pointer -ffunction-sections -fdata-sections --specs=nano.specs -I..
+LDFLAGS=-Wl,-Bstatic,--strip-debug,--gc-sections
 
 # resolution
 CFLAGS += -DSCREENWIDTH=640 -DSCREENHEIGHT=360
@@ -33,7 +34,7 @@ SOURCES_doom_arch := \
 all: doom-riscv.elf
 
 doom-riscv.elf: $(addprefix ../,$(SOURCES_doom)) $(SOURCES_doom_arch)
-	$(CC) $(CFLAGS) -Wl,-Bstatic,--strip-debug -o $@ $(addprefix ../,$(SOURCES_doom)) $(SOURCES_doom_arch)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(addprefix ../,$(SOURCES_doom)) $(SOURCES_doom_arch)
 	$(SIZE) $@
 
 clean:
