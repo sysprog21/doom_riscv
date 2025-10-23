@@ -4,7 +4,7 @@
  * System support code
  *
  * Copyright (C) 1993-1996 by id Software, Inc.
- * Copyright (C) 2022 National Cheng Kung University, Taiwan.
+ * Copyright (C) 2022-2025 National Cheng Kung University, Taiwan.
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
@@ -134,7 +134,13 @@ I_SetRelativeMode(boolean enabled)
 void
 I_Init(void)
 {
-	void *base = malloc(sizeof(emu_event_t) * queues_capacity + sizeof(emu_submission_t) * queues_capacity);
+	void *base;
+	size_t queue_size = sizeof(emu_event_t) * queues_capacity + sizeof(emu_submission_t) * queues_capacity;
+
+	base = malloc(queue_size);
+	if (!base)
+		I_Error("Failed to allocate %zu bytes for event queues", queue_size);
+
 	event_queue.base = base;
 	submission_queue.base = base + sizeof(emu_event_t) * queues_capacity;
 	register int a0 asm("a0") = (uintptr_t) base;
@@ -149,9 +155,14 @@ I_Init(void)
 byte *
 I_ZoneBase(int *size)
 {
+	byte *base;
+
 	/* Give 6M to DOOM */
 	*size = 6 * 1024 * 1024;
-	return (byte *) malloc (*size);
+	base = malloc(*size);
+	if (!base)
+		I_Error("Failed to allocate %d bytes for zone memory", *size);
+	return base;
 }
 
 
@@ -327,8 +338,12 @@ I_Quit(void)
 byte *
 I_AllocLow(int length)
 {
-	/* FIXME: check if memory allocation succeeds */
-	return calloc(1, length);
+	byte *mem;
+
+	mem = calloc(1, length);
+	if (!mem)
+		I_Error("Failed to allocate %d bytes", length);
+	return mem;
 }
 
 
