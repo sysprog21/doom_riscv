@@ -678,10 +678,10 @@ R_StoreWallRange
     worldtop >>= 4;
     worldbottom >>= 4;
 
-    topstep = -FixedMul (rw_scalestep, worldtop);
+    topstep = FixedMulNeg(rw_scalestep, worldtop);
     topfrac = (centeryfrac>>4) - FixedMul (worldtop, rw_scale);
 
-    bottomstep = -FixedMul (rw_scalestep,worldbottom);
+    bottomstep = FixedMulNeg(rw_scalestep, worldbottom);
     bottomfrac = (centeryfrac>>4) - FixedMul (worldbottom, rw_scale);
 
     if (backsector)
@@ -692,13 +692,13 @@ R_StoreWallRange
         if (worldhigh < worldtop)
         {
             pixhigh = (centeryfrac>>4) - FixedMul (worldhigh, rw_scale);
-            pixhighstep = -FixedMul (rw_scalestep,worldhigh);
+            pixhighstep = FixedMulNeg(rw_scalestep, worldhigh);
         }
 
         if (worldlow > worldbottom)
         {
             pixlow = (centeryfrac>>4) - FixedMul (worldlow, rw_scale);
-            pixlowstep = -FixedMul (rw_scalestep,worldlow);
+            pixlowstep = FixedMulNeg(rw_scalestep, worldlow);
         }
     }
 

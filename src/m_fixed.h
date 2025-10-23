@@ -85,7 +85,7 @@ inline static int CONSTFUNC D_abs(fixed_t x)
  * We check for __riscv_mul (standard GCC/Clang macro) OR __riscv_m (M extension version).
  * This provides maximum compatibility across toolchain versions.
  *
- * Note: __riscv_zmmul (multiply-only subset) could also be checked, but doom_riscv
+ * TODO: __riscv_zmmul (multiply-only subset) could also be checked, but doom_riscv
  * targets full RV32IM which includes both multiply and divide.
  */
 
@@ -134,6 +134,97 @@ FIXED_INLINE fixed_t CONSTFUNC FixedMul(fixed_t a, fixed_t b)
     /* Fallback to 64-bit multiply for non-RISC-V or rv32i targets */
     return (fixed_t)((int64_t) a * b >> FRACBITS);
 #endif
+}
+
+/*
+ * Fixed Point Multiply with Right Shift
+ *
+ * Optimized version of: (a * b) >> shift
+ * Common pattern in sprite projection and rendering calculations.
+ *
+ * This function safely handles arithmetic right shift of the 64-bit signed
+ * product without invoking libgcc __ashrdi3 helper on RV32M.
+ *
+ * IMPORTANT: shift must be in range [0..63]. Values outside this range
+ * produce undefined results. Current call sites use constant shifts (8, 16).
+ *
+ * Performance: On RV32M, this uses hardware mul/mulh and avoids libgcc calls.
+ * The benefit is eliminating the 64-bit shift helper, not register reduction.
+ */
+FIXED_INLINE fixed_t CONSTFUNC FixedMulShift(fixed_t a, fixed_t b, unsigned shift)
+{
+#if HAVE_RISCV_HW_MUL
+    int32_t high, low;
+    __asm__ (
+        "mul  %0, %2, %3\n\t"   /* low = a * b (lower 32 bits) */
+        "mulh %1, %2, %3"       /* high = a * b (upper 32 bits, signed) */
+        : "=&r" (low), "=&r" (high)
+        : "r" (a), "r" (b)
+    );
+
+    /* Safe arithmetic right shift of 64-bit signed product, avoiding UB:
+     * - shift == 0: return low 32 bits
+     * - shift < 32: extract middle 32 bits via shifts and OR
+     * - shift < 64: arithmetic shift of high part
+     * - shift >= 64: sign-extend to infinity
+     *
+     * This avoids UB from shifting by >= word size and libgcc __ashrdi3.
+     */
+    if (shift == 0)
+        return low;
+    if (shift < 32)
+        return (fixed_t)(((uint32_t) high << (32 - shift)) | ((uint32_t) low >> shift));
+    if (shift < 64)
+        return (int32_t) high >> (shift - 32);
+    return (high < 0) ? -1 : 0;
+#else
+    /* Fallback for non-RISC-V or rv32i targets */
+    return (fixed_t)((int64_t) a * b >> shift);
+#endif
+}
+
+/*
+ * Fixed Point Multiply with Pre-Shifted First Operand
+ *
+ * Semantic helper for: (a >> shift) * b
+ * Common pattern in collision detection where operands are pre-shifted
+ * to prevent overflow (e.g., line->dy >> FRACBITS).
+ *
+ * IMPORTANT: This is a readability wrapper, NOT a performance optimization.
+ * The shift still occurs; this function exists to make the intent clear at
+ * call sites and to ensure consistent semantics (arithmetic right shift before
+ * multiplication, not combining shifts with the multiply).
+ *
+ * Note: shifta must be in range [0..31] to avoid UB. Current call sites
+ * use constant values (FRACBITS=16, 8).
+ */
+FIXED_INLINE fixed_t CONSTFUNC FixedMulPreShift(fixed_t a, unsigned shifta, fixed_t b)
+{
+    /* Perform shift then multiply using existing FixedMul */
+    return FixedMul(a >> shifta, b);
+}
+
+/*
+ * Fixed Point Multiply with Negation
+ *
+ * Semantic helper for: -(a * b)
+ * Common pattern in wall rendering for calculating negative step values.
+ *
+ * This is implemented as -FixedMul(a, b) to avoid duplicating the bit
+ * assembly logic and to allow the compiler to optimize the negation.
+ * On RV32M, GCC typically emits a single 'sub rd, x0, rd' instruction
+ * after the multiply.
+ *
+ * IMPORTANT: This preserves the original behavior including potential UB
+ * when FixedMul returns INT_MIN (negation overflow). On two's complement
+ * RISC-V targets, this wraps to INT_MIN as expected, but it's technically UB.
+ *
+ * For strict UB-avoidance, one could use:
+ *   return (fixed_t)(0u - (uint32_t)FixedMul(a, b));
+ */
+FIXED_INLINE fixed_t CONSTFUNC FixedMulNeg(fixed_t a, fixed_t b)
+{
+    return -FixedMul(a, b);
 }
 
 /*

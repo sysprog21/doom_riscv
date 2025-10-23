@@ -92,8 +92,8 @@ P_PointOnLineSide
     dx = (x - line->v1->x);
     dy = (y - line->v1->y);
 
-    left = FixedMul ( line->dy>>FRACBITS , dx );
-    right = FixedMul ( dy , line->dx>>FRACBITS );
+    left = FixedMulPreShift(line->dy, FRACBITS, dx);
+    right = FixedMul(dy, line->dx >> FRACBITS);
 
     if (right < left)
         return 0;               // front side
@@ -238,15 +238,15 @@ P_InterceptVector
     fixed_t     num;
     fixed_t     den;
 
-    den = FixedMul (v1->dy>>8,v2->dx) - FixedMul(v1->dx>>8,v2->dy);
+    den = FixedMulPreShift(v1->dy, 8, v2->dx) - FixedMulPreShift(v1->dx, 8, v2->dy);
 
     if (den == 0)
         return 0;
     //  I_Error ("P_InterceptVector: parallel");
 
     num =
-        FixedMul ( (v1->x - v2->x)>>8 ,v1->dy )
-        +FixedMul ( (v2->y - v1->y)>>8, v1->dx );
+        FixedMulPreShift(v1->x - v2->x, 8, v1->dy)
+        + FixedMulPreShift(v2->y - v1->y, 8, v1->dx);
 
     frac = FixedDiv (num , den);
 
