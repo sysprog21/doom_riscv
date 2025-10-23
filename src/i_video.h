@@ -54,6 +54,8 @@ void I_ReadScreen (byte* scr);
 void I_BeginRead (void);
 void I_EndRead (void);
 
+// Mark screen lines as dirty (for dirty region tracking optimization)
+void I_MarkDirtyLines (int y_start, int y_end);
 
 
 #endif

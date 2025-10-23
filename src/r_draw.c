@@ -38,6 +38,7 @@ rcsid[] = "$Id: r_draw.c,v 1.4 1997/02/03 16:47:55 b1 Exp $";
 
 // Needs access to LFB (guess what).
 #include "v_video.h"
+#include "i_video.h"
 
 // State.
 #include "doomstat.h"
@@ -240,6 +241,9 @@ void R_DrawColumn (void)
         I_Error ("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 #endif
 
+    // Mark dirty lines for optimization
+    I_MarkDirtyLines(viewwindowy + dc_yl, viewwindowy + dc_yh);
+
     // Framebuffer destination address.
     dest = screens[0] + (viewwindowy + dc_yl) * SCREENWIDTH + (viewwindowx + dc_x);
 
@@ -289,6 +293,9 @@ void R_DrawFuzzColumn (void)
     }
 #endif
 
+    // Mark dirty lines for optimization
+    I_MarkDirtyLines(viewwindowy + dc_yl, viewwindowy + dc_yh);
+
     // Does not work with blocky mode.
     dest = screens[0] + (viewwindowy + dc_yl) * SCREENWIDTH + (viewwindowx + dc_x);
 
@@ -331,6 +338,9 @@ void R_DrawTranslatedColumn (void)
     }
 
 #endif
+
+    // Mark dirty lines for optimization
+    I_MarkDirtyLines(viewwindowy + dc_yl, viewwindowy + dc_yh);
 
     // FIXME. As above.
     dest = screens[0] + (viewwindowy + dc_yl) * SCREENWIDTH + (viewwindowx + dc_x);
@@ -438,6 +448,9 @@ void R_DrawSpan (void)
     // Zero length.
     if (count < 0)
         return;
+
+    // Mark dirty line for optimization
+    I_MarkDirtyLines(viewwindowy + ds_y, viewwindowy + ds_y);
 
     xfrac = ds_xfrac;
     yfrac = ds_yfrac;
@@ -579,6 +592,16 @@ R_VideoErase
   //  is not optiomal, e.g. byte by byte on
   //  a 32bit CPU, as GNU GCC/Linux libc did
   //  at one point.
+
+    // Defensive check: nothing to erase
+    if (count <= 0)
+        return;
+
+    // Mark dirty lines for optimization
+    int y_start = ofs / SCREENWIDTH;
+    int y_end = (ofs + count - 1) / SCREENWIDTH;
+    I_MarkDirtyLines(y_start, y_end);
+
     memcpy (screens[0]+ofs, screens[1]+ofs, count);
 }
 

@@ -29,10 +29,43 @@
 static uint32_t buffer[SCREENWIDTH * SCREENHEIGHT];
 static uint32_t video_pal[256];
 
+// Dirty region tracking: mark which lines have changed
+static byte dirty_lines[SCREENHEIGHT];
+static int dirty_min_y = SCREENHEIGHT;
+static int dirty_max_y = -1;
+
+// Mark a range of lines as dirty (modified)
+// This is called from rendering functions to track which parts of
+// the screen have changed and need to be updated
+void
+I_MarkDirtyLines(int y_start, int y_end)
+{
+	if (y_start < 0) y_start = 0;
+	if (y_end >= SCREENHEIGHT) y_end = SCREENHEIGHT - 1;
+	if (y_start > y_end) return;
+
+	// Update bounding box
+	if (y_start < dirty_min_y) dirty_min_y = y_start;
+	if (y_end > dirty_max_y) dirty_max_y = y_end;
+
+	// Fast path for single line (common case for horizontal spans)
+	if (y_start == y_end) {
+		dirty_lines[y_start] = 1;
+		return;
+	}
+
+	// Mark individual lines
+	for (int y = y_start; y <= y_end; y++)
+		dirty_lines[y] = 1;
+}
+
 void
 I_InitGraphics(void)
 {
 	usegamma = 1;
+
+	// Initialize dirty region tracking - mark entire screen as dirty
+	I_MarkDirtyLines(0, SCREENHEIGHT - 1);
 
 	register int a0 asm("a0") = (uintptr_t) buffer;
 	register int a1 asm("a1") = SCREENWIDTH;
@@ -70,11 +103,35 @@ I_UpdateNoBlit(void)
 void
 I_FinishUpdate (void)
 {
-	/* Copy from RAM buffer to frame buffer */
-	for (int i = 0; i < SCREENWIDTH * SCREENHEIGHT; ++i) {
-		buffer[i] = video_pal[screens[0][i]];
+	// Only update dirty lines to reduce memory traffic.
+	// In practice, Doom redraws most of the screen each frame, but this
+	// still helps reduce cache pollution and syscall overhead
+
+	int updated_lines = 0;
+
+	// Quick check: if nothing is dirty, skip update
+	if (dirty_max_y < 0) {
+		// No changes this frame, still need to call ecall for frame pacing
+		goto do_syscall;
 	}
 
+	// Copy only dirty lines from palette-indexed buffer to RGB buffer
+	for (int y = dirty_min_y; y <= dirty_max_y; y++) {
+		if (dirty_lines[y]) {
+			int offset = y * SCREENWIDTH;
+			for (int x = 0; x < SCREENWIDTH; x++)
+				buffer[offset + x] = video_pal[screens[0][offset + x]];
+			dirty_lines[y] = 0;
+			updated_lines++;
+		}
+	}
+
+	// Reset dirty tracking
+	dirty_min_y = SCREENHEIGHT;
+	dirty_max_y = -1;
+
+do_syscall:
+	// Always call ecall to present the frame (for timing and vsync)
 	register int a0 asm("a0") = (uintptr_t) buffer;
 	register int a1 asm("a1") = SCREENWIDTH;
 	register int a2 asm("a2") = SCREENHEIGHT;

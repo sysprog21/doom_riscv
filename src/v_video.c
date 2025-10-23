@@ -38,6 +38,7 @@ rcsid[] = "$Id: v_video.c,v 1.5 1997/02/03 22:45:13 b1 Exp $";
 #include "m_swap.h"
 
 #include "v_video.h"
+#include "i_video.h"
 
 
 // Each screen is [SCREENWIDTH*SCREENHEIGHT];
@@ -148,6 +149,9 @@ V_MarkRect
 {
     M_AddToBox (dirtybox, x, y);
     M_AddToBox (dirtybox, x+width-1, y+height-1);
+
+    // Mark dirty lines for optimization
+    I_MarkDirtyLines(y, y + height - 1);
 }
 
 
@@ -182,7 +186,8 @@ V_CopyRect
         I_Error ("Bad V_CopyRect");
     }
 #endif
-    V_MarkRect (destx, desty, width, height);
+    if (!destscrn)
+        V_MarkRect (destx, desty, width, height);
 
     src = screens[srcscrn]+SCREENWIDTH*srcy+srcx;
     dest = screens[destscrn]+SCREENWIDTH*desty+destx;
@@ -218,7 +223,8 @@ V_FillRect
         I_Error ("Bad V_FillRect");
     }
 #endif
-    V_MarkRect (x, y, width, height);
+    if (!scrn)
+        V_MarkRect (x, y, width, height);
 
     byte* dest = screens[scrn]+SCREENWIDTH*y+x;
     for (int i = 0; i < height; ++i)
@@ -401,7 +407,8 @@ V_DrawBlock
     }
 #endif
 
-    V_MarkRect (x, y, width, height);
+    if (!scrn)
+        V_MarkRect (x, y, width, height);
 
     dest = screens[scrn] + y*SCREENWIDTH+x;
 
