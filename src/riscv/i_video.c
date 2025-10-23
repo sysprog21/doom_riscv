@@ -39,7 +39,7 @@ I_InitGraphics(void)
 	register int a2 asm("a2") = SCREENHEIGHT;
 	register int a7 asm("a7") = 0xbeef;
 
-	asm volatile("scall"
+	asm volatile("ecall"
 	             : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
 }
 
@@ -80,7 +80,7 @@ I_FinishUpdate (void)
 	register int a2 asm("a2") = SCREENHEIGHT;
 	register int a7 asm("a7") = 0xbeef;
 
-	asm volatile("scall"
+	asm volatile("ecall"
 	             : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
 
 	/* Very crude FPS measure (time to render 100 frames */

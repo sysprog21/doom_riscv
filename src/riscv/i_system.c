@@ -128,7 +128,7 @@ I_SetRelativeMode(boolean enabled)
 	submission_queue.end &= queues_capacity - 1;
 	register int a0 asm("a0") = 1;
 	register int a7 asm("a7") = 0xfeed;
-	asm volatile("scall" : "+r"(a0) : "r"(a7));
+	asm volatile("ecall" : "+r"(a0) : "r"(a7));
 }
 
 void
@@ -141,7 +141,7 @@ I_Init(void)
 	register int a1 asm("a1") = queues_capacity;
 	register int a2 asm("a2") = (uintptr_t) &event_count;
 	register int a7 asm("a7") = 0xc0de;
-	asm volatile("scall" : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
+	asm volatile("ecall" : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
 	I_SetRelativeMode(true);
 }
 
