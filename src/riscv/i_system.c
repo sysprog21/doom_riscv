@@ -169,7 +169,7 @@ I_ZoneBase(int *size)
 int
 I_GetTime(void)
 {
-	uint16_t vt_now = (uint64_t) clock() / (CLOCKS_PER_SEC / 35.0f);
+	uint16_t vt_now = (uint64_t) clock() * 35 / CLOCKS_PER_SEC;
 
 	if (vt_now < vt_last)
 		vt_base += 65536;
