@@ -21,6 +21,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -54,7 +55,11 @@ _sbrk(intptr_t increment)
 // File handling
 // -------------
 
-/* Flash "filesystem" */
+/* Flash "filesystem"
+ * Note: Filename matching is case-insensitive, so this entry will match
+ *       "doomu.wad", "DOOMU.WAD", "DOOM1.WAD", "doom1.wad", etc.
+ *       Only one WAD file can be embedded at the flash address.
+ */
 static struct {
 	const char *name;	/* Filename */
 	size_t      len;	/* Length */
@@ -93,9 +98,9 @@ _open(const char *pathname, int flags)
 {
 	int fn, fd;
 
-	/* Try to find file */
+	/* Try to find file (case-insensitive) */
 	for (fn=0; fs[fn].name; fn++)
-		if (!strcmp(pathname, fs[fn].name))
+		if (!strcasecmp(pathname, fs[fn].name))
 			break;
 
 	if (!fs[fn].name) {
@@ -230,9 +235,9 @@ access(const char *pathname, int mode)
 {
 	int fn;
 
-	/* Try to find file */
+	/* Try to find file (case-insensitive) */
 	for (fn=0; fs[fn].name; fn++)
-		if (!strcmp(pathname, fs[fn].name))
+		if (!strcasecmp(pathname, fs[fn].name))
 			break;
 
 	if (!fs[fn].name) {
