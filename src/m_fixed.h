@@ -35,6 +35,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <limits.h>  /* For INT_MAX used in FixedDiv */
 
 #include "doomtype.h"
 #include "m_recip.h"
@@ -51,34 +52,102 @@ typedef int fixed_t;
 
 /*
  * Absolute Value
+ *
+ * IMPORTANT: abs(INT_MIN) is undefined behavior in C. We use a safe
+ * bit-twiddling implementation that works correctly for all int32_t values
+ * including INT_MIN (which becomes INT_MIN in unsigned interpretation).
  */
 
-#if 0
 inline static int CONSTFUNC D_abs(fixed_t x)
 {
-    fixed_t _t = (x), _s;
-    _s = _t >> (8 * sizeof _t - 1);
-    return (_t ^ _s) - _s;
+    /* Safe absolute value without UB:
+     * For negative x: mask = 0xFFFFFFFF, result = (~x + 1) = -x
+     * For positive x: mask = 0x00000000, result = x
+     * For INT_MIN: returns INT_MIN (as an int), which in fixed-point context
+     * represents the magnitude correctly when cast to unsigned.
+     */
+    uint32_t ux = (uint32_t)x;
+    uint32_t mask = ux >> 31;  /* 0 if positive, 1 if negative */
+    return (int)((ux ^ -mask) + mask);
 }
-#else
-/* let compilers optimize the calls of abs */
-#define D_abs abs
-#endif
 
 /*
  * Fixed Point Multiplication
+ *
+ * RISC-V M extension optimization:
+ * - With M extension (rv32im): Direct use of mul/mulh instructions (2-3 cycles)
+ * - Without M extension (rv32i): Falls back to libgcc __muldi3 (~100+ cycles)
+ *
+ * The 64-bit multiply is necessary for correct 16.16 fixed-point arithmetic.
+ * With M extension, we use inline assembly to avoid libgcc overhead.
+ *
+ * Detection strategy:
+ * We check for __riscv_mul (standard GCC/Clang macro) OR __riscv_m (M extension version).
+ * This provides maximum compatibility across toolchain versions.
+ *
+ * Note: __riscv_zmmul (multiply-only subset) could also be checked, but doom_riscv
+ * targets full RV32IM which includes both multiply and divide.
  */
 
-inline static fixed_t CONSTFUNC FixedMul(fixed_t a, fixed_t b)
+/* Detect RISC-V M extension multiply support */
+#if defined(__riscv) && (defined(__riscv_mul) || defined(__riscv_m))
+#define HAVE_RISCV_HW_MUL 1
+#else
+#define HAVE_RISCV_HW_MUL 0
+#endif
+
+/* Force inlining to eliminate function call overhead even at -O0 */
+#ifdef __GNUC__
+#define FIXED_INLINE __attribute__((always_inline)) inline static
+#else
+#define FIXED_INLINE inline static
+#endif
+
+FIXED_INLINE fixed_t CONSTFUNC FixedMul(fixed_t a, fixed_t b)
 {
+#if HAVE_RISCV_HW_MUL
+    /* Use RV32M mul/mulh instructions directly for optimal performance.
+     * This avoids libgcc __muldi3 call and compiles to just 2 instructions.
+     *
+     * Math: (a * b) >> 16
+     * Implementation:
+     * - mul  computes lower 32 bits of (a * b)
+     * - mulh computes upper 32 bits of (a * b), signed
+     * - We extract bits [16..47] of the 64-bit product by:
+     *   1. Shifting high left by 16 to get bits [32..47] → bits [16..31]
+     *   2. Shifting low right by 16 to get bits [16..31] → bits [0..15]
+     *   3. OR'ing them together to reconstruct the middle 32 bits
+     *
+     * Correctness: All shifts done in unsigned domain to avoid UB,
+     * then cast back to signed for proper two's complement interpretation.
+     */
+    int32_t high, low;
+    __asm__ (
+        "mul  %0, %2, %3\n\t"   /* low = a * b (lower 32 bits) */
+        "mulh %1, %2, %3"       /* high = a * b (upper 32 bits, signed) */
+        : "=&r" (low), "=&r" (high)  /* early-clobber to prevent input overlap */
+        : "r" (a), "r" (b)
+    );
+    /* Avoid UB from signed left shift: cast to unsigned, shift, then back to signed */
+    return (fixed_t)(((uint32_t)high << (32 - FRACBITS)) | ((uint32_t)low >> FRACBITS));
+#else
+    /* Fallback to 64-bit multiply for non-RISC-V or rv32i targets */
     return (fixed_t)((int64_t) a * b >> FRACBITS);
+#endif
 }
 
 /*
  * Fixed Point Division
+ *
+ * RISC-V M extension detection:
+ * - With M extension (rv32im): Uses hardware div instruction, fast
+ * - Without M extension (rv32i): Falls back to libgcc software emulation, very slow
+ *
+ * For rv32i targets, consider using FixedApproxDiv() instead, which uses
+ * a reciprocal table and is much faster than software division.
  */
 
-inline static fixed_t CONSTFUNC FixedDiv(fixed_t a, fixed_t b)
+FIXED_INLINE fixed_t CONSTFUNC FixedDiv(fixed_t a, fixed_t b)
 {
     return ((unsigned)D_abs(a)>>14) >= (unsigned)D_abs(b) ? ((a^b)>>31) ^ INT_MAX :
                                                             (fixed_t)(((int64_t) a << FRACBITS) / b);
@@ -89,7 +158,7 @@ inline static fixed_t CONSTFUNC FixedDiv(fixed_t a, fixed_t b)
  * (notice that the C standard for % does not guarantee this)
  */
 
-inline static fixed_t CONSTFUNC FixedMod(fixed_t a, fixed_t b)
+FIXED_INLINE fixed_t CONSTFUNC FixedMod(fixed_t a, fixed_t b)
 {
     if (!a)
         return 0;
@@ -106,7 +175,7 @@ inline static fixed_t CONSTFUNC FixedMod(fixed_t a, fixed_t b)
  * Approximate Reciprocal of v
  */
 
-inline static CONSTFUNC fixed_t FixedReciprocal(fixed_t v)
+FIXED_INLINE CONSTFUNC fixed_t FixedReciprocal(fixed_t v)
 {
     unsigned int val = v < 0 ? -v : v;
 
@@ -126,9 +195,12 @@ inline static CONSTFUNC fixed_t FixedReciprocal(fixed_t v)
 
 /*
  * Approximate fixed point divide of a/b using reciprocal. -> a * (1/b).
+ *
+ * This function uses a reciprocal table and FixedMul, avoiding division entirely.
+ * On rv32i (without M extension), this is significantly faster than FixedDiv.
  */
 
-inline static CONSTFUNC fixed_t FixedApproxDiv(fixed_t a, fixed_t b)
+FIXED_INLINE CONSTFUNC fixed_t FixedApproxDiv(fixed_t a, fixed_t b)
 {
     return FixedMul(a, FixedReciprocal(b));
 }
