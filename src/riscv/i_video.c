@@ -67,12 +67,12 @@ I_InitGraphics(void)
 	// Initialize dirty region tracking - mark entire screen as dirty
 	I_MarkDirtyLines(0, SCREENHEIGHT - 1);
 
-	register int a0 asm("a0") = (uintptr_t) buffer;
-	register int a1 asm("a1") = SCREENWIDTH;
-	register int a2 asm("a2") = SCREENHEIGHT;
-	register int a7 asm("a7") = 0xbeef;
+	register int a0 __asm__("a0") = (uintptr_t) buffer;
+	register int a1 __asm__("a1") = SCREENWIDTH;
+	register int a2 __asm__("a2") = SCREENHEIGHT;
+	register int a7 __asm__("a7") = 0xbeef;
 
-	asm volatile("ecall"
+	__asm__ volatile("ecall"
 	             : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
 }
 
@@ -132,12 +132,12 @@ I_FinishUpdate (void)
 
 do_syscall:
 	// Always call ecall to present the frame (for timing and vsync)
-	register int a0 asm("a0") = (uintptr_t) buffer;
-	register int a1 asm("a1") = SCREENWIDTH;
-	register int a2 asm("a2") = SCREENHEIGHT;
-	register int a7 asm("a7") = 0xbeef;
+	register int a0 __asm__("a0") = (uintptr_t) buffer;
+	register int a1 __asm__("a1") = SCREENWIDTH;
+	register int a2 __asm__("a2") = SCREENHEIGHT;
+	register int a7 __asm__("a7") = 0xbeef;
 
-	asm volatile("ecall"
+	__asm__ volatile("ecall"
 	             : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
 
 	/* Very crude FPS measure (time to render 100 frames */

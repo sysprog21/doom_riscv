@@ -126,9 +126,9 @@ I_SetRelativeMode(boolean enabled)
 	submission.mouse.enabled = enabled;
 	submission_queue.base[submission_queue.end++] = submission;
 	submission_queue.end &= queues_capacity - 1;
-	register int a0 asm("a0") = 1;
-	register int a7 asm("a7") = 0xfeed;
-	asm volatile("ecall" : "+r"(a0) : "r"(a7));
+	register int a0 __asm__("a0") = 1;
+	register int a7 __asm__("a7") = 0xfeed;
+	__asm__ volatile("ecall" : "+r"(a0) : "r"(a7));
 }
 
 void
@@ -143,11 +143,11 @@ I_Init(void)
 
 	event_queue.base = base;
 	submission_queue.base = base + sizeof(emu_event_t) * queues_capacity;
-	register int a0 asm("a0") = (uintptr_t) base;
-	register int a1 asm("a1") = queues_capacity;
-	register int a2 asm("a2") = (uintptr_t) &event_count;
-	register int a7 asm("a7") = 0xc0de;
-	asm volatile("ecall" : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
+	register int a0 __asm__("a0") = (uintptr_t) base;
+	register int a1 __asm__("a1") = queues_capacity;
+	register int a2 __asm__("a2") = (uintptr_t) &event_count;
+	register int a7 __asm__("a7") = 0xc0de;
+	__asm__ volatile("ecall" : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
 	I_SetRelativeMode(true);
 }
 

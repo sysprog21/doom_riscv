@@ -803,7 +803,7 @@ void R_SortVisSprites (void)
     int                 count;
     vissprite_t*        ds;
     vissprite_t*        best;
-    vissprite_t         unsorted;
+    static vissprite_t  unsorted;   // static: used as sentinel, addresses stored in global list
     fixed_t             bestscale;
 
     count = vissprite_p - vissprites;

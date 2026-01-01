@@ -425,7 +425,8 @@ typedef struct
     // If false use 0 for any position.
     // Note: as eight entries are available,
     //  we might as well insert the same name eight times.
-    boolean     rotate;
+    // Uses int instead of boolean: -1 = uninitialized, 0 = no rotation, 1 = has rotations
+    int         rotate;
 
     // Lump to use for view angles 0-7.
     short       lump[8];

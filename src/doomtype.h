@@ -28,11 +28,21 @@
 
 #ifndef __BYTEBOOL__
 #define __BYTEBOOL__
-// Fixed to use builtin bool type with C++.
-#ifdef __cplusplus
-typedef bool boolean;
+// DOOM uses int-sized boolean for struct layout compatibility.
+// C23 makes true/false keywords, so we can't use enum {false, true}.
+// Solution: Use int for boolean type, define true/false if needed.
+#if defined(__cplusplus) || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L)
+// C++/C23: true, false are keywords; use int to preserve struct sizes
+typedef int boolean;
+#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+// C99/C11: true, false available via stdbool.h; use int for size
+#include <stdbool.h>
+typedef int boolean;
 #else
-typedef enum {false, true} boolean;
+// Pre-C99: define the enum and macros
+typedef enum {qfalse, qtrue} boolean;
+#define false qfalse
+#define true qtrue
 #endif
 typedef unsigned char byte;
 #endif

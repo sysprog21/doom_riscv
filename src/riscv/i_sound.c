@@ -27,10 +27,10 @@ I_InitSound()
 {
     int request_type = INIT_SOUND;
 
-    register int a0 asm("a0") = request_type;
-    register int a7 asm("a7") = 0xBABE;
+    register int a0 __asm__("a0") = request_type;
+    register int a7 __asm__("a7") = 0xBABE;
 
-    asm volatile("ecall" : "+r"(a0) : "r"(a7));
+    __asm__ volatile("ecall" : "+r"(a0) : "r"(a7));
 }
 
 void
@@ -48,10 +48,10 @@ I_ShutdownSound(void)
 {
     int request_type = SHUTDOWN_SOUND;
 
-    register int a0 asm("a0") = request_type;
-    register int a7 asm("a7") = 0xBABE;
+    register int a0 __asm__("a0") = request_type;
+    register int a7 __asm__("a7") = 0xBABE;
 
-    asm volatile("ecall" : "+r"(a0) : "r"(a7));
+    __asm__ volatile("ecall" : "+r"(a0) : "r"(a7));
 }
 
 void I_SetChannels(void)
@@ -71,12 +71,12 @@ I_StartSound
 {
     int request_type = PLAY_SFX;
 
-    register int a0 asm("a0") = request_type;
-    register int a1 asm("a1") = (uintptr_t) data;
-    register int a2 asm("a2") = volume;
-    register int a7 asm("a7") = 0xD00D;
+    register int a0 __asm__("a0") = request_type;
+    register int a1 __asm__("a1") = (uintptr_t) data;
+    register int a2 __asm__("a2") = volume;
+    register int a7 __asm__("a7") = 0xD00D;
 
-    asm volatile("ecall" : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
+    __asm__ volatile("ecall" : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
 }
 
 void
@@ -136,11 +136,11 @@ I_SetMusicVolume(int volume)
 
     int request_type = SET_MUSIC_VOLUME;
 
-    register int a0 asm("a0") = request_type;
-    register int a1 asm("a1") = volume;
-    register int a7 asm("a7") = 0xD00D;
+    register int a0 __asm__("a0") = request_type;
+    register int a1 __asm__("a1") = volume;
+    register int a7 __asm__("a7") = 0xD00D;
 
-    asm volatile("ecall" : "+r"(a0) : "r"(a1), "r"(a7));
+    __asm__ volatile("ecall" : "+r"(a0) : "r"(a1), "r"(a7));
 }
 
 void
@@ -168,13 +168,13 @@ I_PlaySong
 {
     int request_type = PLAY_MUSIC;
 
-    register int a0 asm("a0") = request_type;
-    register int a1 asm("a1") = (uintptr_t) data;
-    register int a2 asm("a2") = volume;
-    register int a3 asm("a3") = looping;
-    register int a7 asm("a7") = 0xD00D;
+    register int a0 __asm__("a0") = request_type;
+    register int a1 __asm__("a1") = (uintptr_t) data;
+    register int a2 __asm__("a2") = volume;
+    register int a3 __asm__("a3") = looping;
+    register int a7 __asm__("a7") = 0xD00D;
 
-    asm volatile("ecall" : "+r"(a0) : "r"(a1), "r"(a2), "r"(a3), "r"(a7));
+    __asm__ volatile("ecall" : "+r"(a0) : "r"(a1), "r"(a2), "r"(a3), "r"(a7));
 }
 
 void
@@ -182,10 +182,10 @@ I_StopSong()
 {
     int request_type = STOP_MUSIC;
 
-    register int a0 asm("a0") = request_type;
-    register int a7 asm("a7") = 0xD00D;
+    register int a0 __asm__("a0") = request_type;
+    register int a7 __asm__("a7") = 0xD00D;
 
-    asm volatile("ecall" : "+r"(a0) : "r"(a7));
+    __asm__ volatile("ecall" : "+r"(a0) : "r"(a7));
 }
 
 void

@@ -61,7 +61,8 @@ rcsid[] = "$Id: p_spec.c,v 1.6 1997/02/03 22:45:12 b1 Exp $";
 //
 typedef struct
 {
-    boolean     istexture;
+    // Uses int instead of boolean: -1 = end sentinel, 0 = flat, 1 = texture
+    int         istexture;
     int         picnum;
     int         basepic;
     int         numpics;
@@ -74,7 +75,8 @@ typedef struct
 //
 typedef struct
 {
-    boolean     istexture;      // if false, it is a flat
+    // Uses int instead of boolean: -1 = end sentinel, 0 = flat, 1 = texture
+    int         istexture;
     char        endname[9];
     char        startname[9];
     int         speed;

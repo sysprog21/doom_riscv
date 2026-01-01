@@ -114,7 +114,7 @@ int             starttime;              // for comparative timing purposes
 
 boolean         viewactive;
 
-boolean         deathmatch;             // only if started as net death
+int             deathmatch;             // 0=cooperative, 1=deathmatch, 2=altdeath
 boolean         netgame;                // only true if packets are broadcast
 boolean         playeringame[MAXPLAYERS];
 player_t        players[MAXPLAYERS];
