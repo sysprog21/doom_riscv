@@ -282,9 +282,11 @@ void P_DropWeapon (player_t* player)
 //
 void
 A_WeaponReady
-( player_t*     player,
-  pspdef_t*     psp )
+( void*     player_data,
+  void*     psp_data )
 {
+    player_t*   player = player_data;
+    pspdef_t*   psp = psp_data;
     statenum_t  newstate;
     int         angle;
 
@@ -343,9 +345,11 @@ A_WeaponReady
 // without lowering it entirely.
 //
 void A_ReFire
-( player_t*     player,
-  pspdef_t*     psp )
+( void*     player_data,
+  void*     psp_data )
 {
+    player_t*   player = player_data;
+    (void)psp_data;  // unused
 
     // check for fire
     //  (if a weaponchange is pending, let it go through instead)
@@ -366,9 +370,11 @@ void A_ReFire
 
 void
 A_CheckReload
-( player_t*     player,
-  pspdef_t*     psp )
+( void*     player_data,
+  void*     psp_data )
 {
+    player_t*   player = player_data;
+    (void)psp_data;  // unused
     P_CheckAmmo (player);
 #if 0
     if (player->ammo[am_shell]<2)
@@ -385,9 +391,11 @@ A_CheckReload
 //
 void
 A_Lower
-( player_t*     player,
-  pspdef_t*     psp )
+( void*     player_data,
+  void*     psp_data )
 {
+    player_t*   player = player_data;
+    pspdef_t*   psp = psp_data;
     psp->sy += LOWERSPEED;
 
     // Is already down.
@@ -423,9 +431,11 @@ A_Lower
 //
 void
 A_Raise
-( player_t*     player,
-  pspdef_t*     psp )
+( void*     player_data,
+  void*     psp_data )
 {
+    player_t*   player = player_data;
+    pspdef_t*   psp = psp_data;
     statenum_t  newstate;
 
     psp->sy -= RAISESPEED;
@@ -449,9 +459,11 @@ A_Raise
 //
 void
 A_GunFlash
-( player_t*     player,
-  pspdef_t*     psp )
+( void*     player_data,
+  void*     psp_data )
 {
+    player_t*   player = player_data;
+    (void)psp_data;  // unused
     P_SetMobjState (player->mo, S_PLAY_ATK2);
     P_SetPsprite (player,ps_flash,weaponinfo[player->readyweapon].flashstate);
 }
@@ -468,12 +480,14 @@ A_GunFlash
 //
 void
 A_Punch
-( player_t*     player,
-  pspdef_t*     psp )
+( void*     player_data,
+  void*     psp_data )
 {
+    player_t*   player = player_data;
     angle_t     angle;
     int         damage;
     int         slope;
+    (void)psp_data;  // unused
 
     damage = (P_Random ()%10+1)<<1;
 
@@ -502,12 +516,14 @@ A_Punch
 //
 void
 A_Saw
-( player_t*     player,
-  pspdef_t*     psp )
+( void*     player_data,
+  void*     psp_data )
 {
+    player_t*   player = player_data;
     angle_t     angle;
     int         damage;
     int         slope;
+    (void)psp_data;  // unused
 
     damage = 2*(P_Random ()%10+1);
     angle = player->mo->angle;
@@ -551,9 +567,11 @@ A_Saw
 //
 void
 A_FireMissile
-( player_t*     player,
-  pspdef_t*     psp )
+( void*     player_data,
+  void*     psp_data )
 {
+    player_t*   player = player_data;
+    (void)psp_data;  // unused
     player->ammo[weaponinfo[player->readyweapon].ammo]--;
     P_SpawnPlayerMissile (player->mo, MT_ROCKET);
 }
@@ -564,9 +582,11 @@ A_FireMissile
 //
 void
 A_FireBFG
-( player_t*     player,
-  pspdef_t*     psp )
+( void*     player_data,
+  void*     psp_data )
 {
+    player_t*   player = player_data;
+    (void)psp_data;  // unused
     player->ammo[weaponinfo[player->readyweapon].ammo] -= BFGCELLS;
     P_SpawnPlayerMissile (player->mo, MT_BFG);
 }
@@ -578,9 +598,11 @@ A_FireBFG
 //
 void
 A_FirePlasma
-( player_t*     player,
-  pspdef_t*     psp )
+( void*     player_data,
+  void*     psp_data )
 {
+    player_t*   player = player_data;
+    (void)psp_data;  // unused
     player->ammo[weaponinfo[player->readyweapon].ammo]--;
 
     P_SetPsprite (player,
@@ -647,9 +669,11 @@ P_GunShot
 //
 void
 A_FirePistol
-( player_t*     player,
-  pspdef_t*     psp )
+( void*     player_data,
+  void*     psp_data )
 {
+    player_t*   player = player_data;
+    (void)psp_data;  // unused
     S_StartSound (player->mo, sfx_pistol);
 
     P_SetMobjState (player->mo, S_PLAY_ATK2);
@@ -669,10 +693,12 @@ A_FirePistol
 //
 void
 A_FireShotgun
-( player_t*     player,
-  pspdef_t*     psp )
+( void*     player_data,
+  void*     psp_data )
 {
+    player_t*   player = player_data;
     int         i;
+    (void)psp_data;  // unused
 
     S_StartSound (player->mo, sfx_shotgn);
     P_SetMobjState (player->mo, S_PLAY_ATK2);
@@ -696,12 +722,14 @@ A_FireShotgun
 //
 void
 A_FireShotgun2
-( player_t*     player,
-  pspdef_t*     psp )
+( void*     player_data,
+  void*     psp_data )
 {
+    player_t*   player = player_data;
     int         i;
     angle_t     angle;
     int         damage;
+    (void)psp_data;  // unused
 
 
     S_StartSound (player->mo, sfx_dshtgn);
@@ -733,9 +761,11 @@ A_FireShotgun2
 //
 void
 A_FireCGun
-( player_t*     player,
-  pspdef_t*     psp )
+( void*     player_data,
+  void*     psp_data )
 {
+    player_t*   player = player_data;
+    pspdef_t*   psp = psp_data;
     S_StartSound (player->mo, sfx_pistol);
 
     if (!player->ammo[weaponinfo[player->readyweapon].ammo])
@@ -760,18 +790,24 @@ A_FireCGun
 //
 // ?
 //
-void A_Light0 (player_t *player, pspdef_t *psp)
+void A_Light0 (void *player_data, void *psp_data)
 {
+    player_t *player = player_data;
+    (void)psp_data;
     player->extralight = 0;
 }
 
-void A_Light1 (player_t *player, pspdef_t *psp)
+void A_Light1 (void *player_data, void *psp_data)
 {
+    player_t *player = player_data;
+    (void)psp_data;
     player->extralight = 1;
 }
 
-void A_Light2 (player_t *player, pspdef_t *psp)
+void A_Light2 (void *player_data, void *psp_data)
 {
+    player_t *player = player_data;
+    (void)psp_data;
     player->extralight = 2;
 }
 
@@ -780,8 +816,10 @@ void A_Light2 (player_t *player, pspdef_t *psp)
 // A_BFGSpray
 // Spawn a BFG explosion on every monster in view
 //
-void A_BFGSpray (mobj_t* mo)
+void A_BFGSpray (void* data, void* unused)
 {
+    mobj_t*             mo = data;
+    (void)unused;
     int                 i;
     int                 j;
     int                 damage;
@@ -818,9 +856,11 @@ void A_BFGSpray (mobj_t* mo)
 //
 void
 A_BFGsound
-( player_t*     player,
-  pspdef_t*     psp )
+( void*     player_data,
+  void*     psp_data )
 {
+    player_t*   player = player_data;
+    (void)psp_data;  // unused
     S_StartSound (player->mo, sfx_bfg);
 }
 

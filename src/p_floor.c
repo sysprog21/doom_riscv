@@ -207,8 +207,9 @@ T_MovePlane
 //
 // MOVE A FLOOR TO IT'S DESTINATION (UP OR DOWN)
 //
-void T_MoveFloor(floormove_t* floor)
+void T_MoveFloor(void* data)
 {
+    floormove_t* floor = data;
     result_e    res;
 
     res = T_MovePlane(floor->sector,
@@ -283,7 +284,7 @@ EV_DoFloor
         floor = Z_Malloc (sizeof(*floor), PU_LEVSPEC, 0);
         P_AddThinker (&floor->thinker);
         sec->specialdata = floor;
-        floor->thinker.function.acp1 = (actionf_p1) T_MoveFloor;
+        floor->thinker.function.acp1 = T_MoveFloor;
         floor->type = floortype;
         floor->crush = false;
 
@@ -486,7 +487,7 @@ EV_BuildStairs
         floor = Z_Malloc (sizeof(*floor), PU_LEVSPEC, 0);
         P_AddThinker (&floor->thinker);
         sec->specialdata = floor;
-        floor->thinker.function.acp1 = (actionf_p1) T_MoveFloor;
+        floor->thinker.function.acp1 = T_MoveFloor;
         floor->direction = 1;
         floor->sector = sec;
         switch(type)
@@ -541,7 +542,7 @@ EV_BuildStairs
                 P_AddThinker (&floor->thinker);
 
                 sec->specialdata = floor;
-                floor->thinker.function.acp1 = (actionf_p1) T_MoveFloor;
+                floor->thinker.function.acp1 = T_MoveFloor;
                 floor->direction = 1;
                 floor->sector = sec;
                 floor->speed = speed;

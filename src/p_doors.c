@@ -61,8 +61,9 @@ slidename_t     slideFrameNames[MAXSLIDEDOORS] =
 //
 // T_VerticalDoor
 //
-void T_VerticalDoor (vldoor_t* door)
+void T_VerticalDoor (void* data)
 {
+    vldoor_t* door = data;
     result_e    res;
 
     switch(door->direction)
@@ -286,7 +287,7 @@ EV_DoDoor
         P_AddThinker (&door->thinker);
         sec->specialdata = door;
 
-        door->thinker.function.acp1 = (actionf_p1) T_VerticalDoor;
+        door->thinker.function.acp1 = T_VerticalDoor;
         door->sector = sec;
         door->type = type;
         door->topwait = VDOORWAIT;
@@ -458,7 +459,7 @@ EV_VerticalDoor
     door = Z_Malloc (sizeof(*door), PU_LEVSPEC, 0);
     P_AddThinker (&door->thinker);
     sec->specialdata = door;
-    door->thinker.function.acp1 = (actionf_p1) T_VerticalDoor;
+    door->thinker.function.acp1 = T_VerticalDoor;
     door->sector = sec;
     door->direction = 1;
     door->speed = VDOORSPEED;
@@ -512,7 +513,7 @@ void P_SpawnDoorCloseIn30 (sector_t* sec)
     sec->specialdata = door;
     sec->special = 0;
 
-    door->thinker.function.acp1 = (actionf_p1)T_VerticalDoor;
+    door->thinker.function.acp1 = T_VerticalDoor;
     door->sector = sec;
     door->direction = 0;
     door->type = normal;
@@ -537,7 +538,7 @@ P_SpawnDoorRaiseIn5Mins
     sec->specialdata = door;
     sec->special = 0;
 
-    door->thinker.function.acp1 = (actionf_p1)T_VerticalDoor;
+    door->thinker.function.acp1 = T_VerticalDoor;
     door->sector = sec;
     door->direction = 2;
     door->type = raiseIn5Mins;

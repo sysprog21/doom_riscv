@@ -50,8 +50,9 @@ ceiling_t*      activeceilings[MAXCEILINGS];
 // T_MoveCeiling
 //
 
-void T_MoveCeiling (ceiling_t* ceiling)
+void T_MoveCeiling (void* data)
 {
+    ceiling_t* ceiling = data;
     result_e    res;
 
     switch(ceiling->direction)
@@ -204,7 +205,7 @@ EV_DoCeiling
         ceiling = Z_Malloc (sizeof(*ceiling), PU_LEVSPEC, 0);
         P_AddThinker (&ceiling->thinker);
         sec->specialdata = ceiling;
-        ceiling->thinker.function.acp1 = (actionf_p1)T_MoveCeiling;
+        ceiling->thinker.function.acp1 = T_MoveCeiling;
         ceiling->sector = sec;
         ceiling->crush = false;
 
@@ -301,7 +302,7 @@ void P_ActivateInStasisCeiling(line_t* line)
         {
             activeceilings[i]->direction = activeceilings[i]->olddirection;
             activeceilings[i]->thinker.function.acp1
-              = (actionf_p1)T_MoveCeiling;
+              = T_MoveCeiling;
         }
     }
 }

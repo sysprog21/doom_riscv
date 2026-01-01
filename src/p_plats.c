@@ -50,8 +50,9 @@ plat_t*         activeplats[MAXPLATS];
 //
 // Move a plat up and down
 //
-void T_PlatRaise(plat_t* plat)
+void T_PlatRaise(void* data)
 {
+    plat_t* plat = data;
     result_e    res;
 
     switch(plat->status)
@@ -177,7 +178,7 @@ EV_DoPlat
         plat->type = type;
         plat->sector = sec;
         plat->sector->specialdata = plat;
-        plat->thinker.function.acp1 = (actionf_p1) T_PlatRaise;
+        plat->thinker.function.acp1 = T_PlatRaise;
         plat->crush = false;
         plat->tag = line->tag;
 
@@ -267,7 +268,7 @@ void P_ActivateInStasis(int tag)
         {
             (activeplats[i])->status = (activeplats[i])->oldstatus;
             (activeplats[i])->thinker.function.acp1
-              = (actionf_p1) T_PlatRaise;
+              = T_PlatRaise;
         }
 }
 

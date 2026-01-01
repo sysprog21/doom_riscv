@@ -44,8 +44,9 @@ rcsid[] = "$Id: p_lights.c,v 1.5 1997/02/03 22:45:11 b1 Exp $";
 //
 // T_FireFlicker
 //
-void T_FireFlicker (fireflicker_t* flick)
+void T_FireFlicker (void* data)
 {
+    fireflicker_t* flick = data;
     int amount;
 
     if (--flick->count)
@@ -78,7 +79,7 @@ void P_SpawnFireFlicker (sector_t*      sector)
 
     P_AddThinker (&flick->thinker);
 
-    flick->thinker.function.acp1 = (actionf_p1) T_FireFlicker;
+    flick->thinker.function.acp1 = T_FireFlicker;
     flick->sector = sector;
     flick->maxlight = sector->lightlevel;
     flick->minlight = P_FindMinSurroundingLight(sector,sector->lightlevel)+16;
@@ -96,8 +97,10 @@ void P_SpawnFireFlicker (sector_t*      sector)
 // T_LightFlash
 // Do flashing lights.
 //
-void T_LightFlash (lightflash_t* flash)
+void T_LightFlash (void* data)
 {
+    lightflash_t* flash = data;
+
     if (--flash->count)
         return;
 
@@ -133,7 +136,7 @@ void P_SpawnLightFlash (sector_t*       sector)
 
     P_AddThinker (&flash->thinker);
 
-    flash->thinker.function.acp1 = (actionf_p1) T_LightFlash;
+    flash->thinker.function.acp1 = T_LightFlash;
     flash->sector = sector;
     flash->maxlight = sector->lightlevel;
 
@@ -153,8 +156,10 @@ void P_SpawnLightFlash (sector_t*       sector)
 //
 // T_StrobeFlash
 //
-void T_StrobeFlash (strobe_t*           flash)
+void T_StrobeFlash (void* data)
 {
+    strobe_t* flash = data;
+
     if (--flash->count)
         return;
 
@@ -193,7 +198,7 @@ P_SpawnStrobeFlash
     flash->sector = sector;
     flash->darktime = fastOrSlow;
     flash->brighttime = STROBEBRIGHT;
-    flash->thinker.function.acp1 = (actionf_p1) T_StrobeFlash;
+    flash->thinker.function.acp1 = T_StrobeFlash;
     flash->maxlight = sector->lightlevel;
     flash->minlight = P_FindMinSurroundingLight(sector, sector->lightlevel);
 
@@ -312,8 +317,10 @@ EV_LightTurnOn
 // Spawn glowing light
 //
 
-void T_Glow(glow_t*     g)
+void T_Glow(void* data)
 {
+    glow_t* g = data;
+
     switch(g->direction)
     {
       case -1:
@@ -350,7 +357,7 @@ void P_SpawnGlowingLight(sector_t*      sector)
     g->sector = sector;
     g->minlight = P_FindMinSurroundingLight(sector,sector->lightlevel);
     g->maxlight = sector->lightlevel;
-    g->thinker.function.acp1 = (actionf_p1) T_Glow;
+    g->thinker.function.acp1 = T_Glow;
     g->direction = -1;
 
     sector->special = 0;
